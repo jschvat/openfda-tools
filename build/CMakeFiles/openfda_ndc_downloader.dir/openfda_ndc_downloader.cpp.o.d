@@ -280,4 +280,6 @@ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o: \
  /usr/include/c++/11/unordered_map /usr/include/c++/11/bits/hashtable.h \
  /usr/include/c++/11/bits/hashtable_policy.h \
  /usr/include/c++/11/bits/enable_special_members.h \
- /usr/include/c++/11/bits/unordered_map.h
+ /usr/include/c++/11/bits/unordered_map.h /usr/include/curses.h \
+ /usr/include/ncurses_dll.h /usr/include/unctrl.h /usr/include/curses.h \
+ /usr/include/menu.h /usr/include/eti.h

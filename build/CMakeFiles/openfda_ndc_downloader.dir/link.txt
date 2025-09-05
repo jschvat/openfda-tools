@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o -o openfda_ndc_downloader  /usr/lib/x86_64-linux-gnu/libcurl.so /usr/lib/x86_64-linux-gnu/libmysqlclient.so -ljsoncpp 
+/usr/bin/c++ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o -o openfda_ndc_downloader  /usr/lib/x86_64-linux-gnu/libcurl.so /usr/lib/x86_64-linux-gnu/libmysqlclient.so -ljsoncpp -lncurses /usr/lib/x86_64-linux-gnu/libmenu.so 

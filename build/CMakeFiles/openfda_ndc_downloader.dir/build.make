@@ -94,6 +94,8 @@ openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downlo
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/build.make
 openfda_ndc_downloader: /usr/lib/x86_64-linux-gnu/libcurl.so
 openfda_ndc_downloader: /usr/lib/x86_64-linux-gnu/libmysqlclient.so
+openfda_ndc_downloader: /usr/lib/x86_64-linux-gnu/libncurses.so
+openfda_ndc_downloader: /usr/lib/x86_64-linux-gnu/libmenu.so
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable openfda_ndc_downloader"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/openfda_ndc_downloader.dir/link.txt --verbose=$(VERBOSE)

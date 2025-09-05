@@ -215,11 +215,17 @@ CURL_INCLUDE_DIR:PATH=/usr/include/x86_64-linux-gnu
 //Path to a library.
 CURL_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libcurl.so
 
+//Path to a library.
+MENU_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libmenu.so
+
 //Path to a file.
 MYSQL_INCLUDE_DIR:PATH=/usr/include
 
 //Path to a library.
 MYSQL_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libmysqlclient.so
+
+//Path to a library.
+NCURSES_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libncurses.so
 
 //Value Computed by CMake
 OpenFDANDCDownloader_BINARY_DIR:STATIC=/home/jason/Development/claude/openfda-tools/build

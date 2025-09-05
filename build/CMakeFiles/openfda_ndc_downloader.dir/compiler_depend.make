@@ -353,8 +353,18 @@ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o: ../openfda_n
   /usr/include/c++/11/bits/hashtable.h \
   /usr/include/c++/11/bits/hashtable_policy.h \
   /usr/include/c++/11/bits/enable_special_members.h \
-  /usr/include/c++/11/bits/unordered_map.h
+  /usr/include/c++/11/bits/unordered_map.h \
+  /usr/include/curses.h \
+  /usr/include/ncurses_dll.h \
+  /usr/include/unctrl.h \
+  /usr/include/curses.h \
+  /usr/include/menu.h \
+  /usr/include/eti.h
 
+
+/usr/include/eti.h:
+
+/usr/include/ncurses_dll.h:
 
 /usr/include/c++/11/bits/unordered_map.h:
 
@@ -419,6 +429,8 @@ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o: ../openfda_n
 /usr/include/c++/11/bits/parse_numbers.h:
 
 /usr/include/c++/11/limits:
+
+/usr/include/menu.h:
 
 /usr/include/c++/11/thread:
 
@@ -754,6 +766,8 @@ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o: ../openfda_n
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_timespec.h:
 
+/usr/include/curses.h:
+
 /usr/include/c++/11/bits/stl_iterator_base_types.h:
 
 /usr/include/c++/11/cstdlib:
@@ -983,6 +997,8 @@ CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o: ../openfda_n
 /usr/include/x86_64-linux-gnu/curl/options.h:
 
 /usr/include/c++/11/bits/stl_raw_storage_iter.h:
+
+/usr/include/unctrl.h:
 
 /usr/include/c++/11/bits/uses_allocator.h:
 
