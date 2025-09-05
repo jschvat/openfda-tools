@@ -1,0 +1,7 @@
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/openfda_ndc_downloader.dir
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/edit_cache.dir
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/rebuild_cache.dir
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/list_install_components.dir
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/install.dir
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/install/local.dir
+/home/jason/Development/claude/openfda-tools/build/CMakeFiles/install/strip.dir
