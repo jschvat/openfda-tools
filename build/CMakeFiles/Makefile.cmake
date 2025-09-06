@@ -19,9 +19,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.22/Modules/CMakeLanguageInformation.cmake"
   "/usr/share/cmake-3.22/Modules/CMakeSystemSpecificInformation.cmake"
   "/usr/share/cmake-3.22/Modules/CMakeSystemSpecificInitialize.cmake"
-  "/usr/share/cmake-3.22/Modules/CheckCSourceCompiles.cmake"
-  "/usr/share/cmake-3.22/Modules/CheckIncludeFile.cmake"
-  "/usr/share/cmake-3.22/Modules/CheckLibraryExists.cmake"
   "/usr/share/cmake-3.22/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
   "/usr/share/cmake-3.22/Modules/Compiler/GNU-C.cmake"
   "/usr/share/cmake-3.22/Modules/Compiler/GNU-CXX.cmake"
@@ -29,8 +26,6 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake"
   "/usr/share/cmake-3.22/Modules/FindPackageMessage.cmake"
   "/usr/share/cmake-3.22/Modules/FindPkgConfig.cmake"
-  "/usr/share/cmake-3.22/Modules/FindThreads.cmake"
-  "/usr/share/cmake-3.22/Modules/Internal/CheckSourceCompiles.cmake"
   "/usr/share/cmake-3.22/Modules/Platform/Linux-GNU-C.cmake"
   "/usr/share/cmake-3.22/Modules/Platform/Linux-GNU-CXX.cmake"
   "/usr/share/cmake-3.22/Modules/Platform/Linux-GNU.cmake"
@@ -52,4 +47,5 @@ set(CMAKE_MAKEFILE_PRODUCTS
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/openfda_ndc_downloader.dir/DependInfo.cmake"
+  "CMakeFiles/test_error_logger.dir/DependInfo.cmake"
   )

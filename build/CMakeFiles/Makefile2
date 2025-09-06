@@ -64,6 +64,7 @@ CMAKE_BINARY_DIR = /home/jason/Development/claude/openfda-tools/build
 
 # The main recursive "all" target.
 all: CMakeFiles/openfda_ndc_downloader.dir/all
+all: CMakeFiles/test_error_logger.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -72,6 +73,7 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/openfda_ndc_downloader.dir/clean
+clean: CMakeFiles/test_error_logger.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -81,12 +83,12 @@ clean: CMakeFiles/openfda_ndc_downloader.dir/clean
 CMakeFiles/openfda_ndc_downloader.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=1,2 "Built target openfda_ndc_downloader"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target openfda_ndc_downloader"
 .PHONY : CMakeFiles/openfda_ndc_downloader.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/openfda_ndc_downloader.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/jason/Development/claude/openfda-tools/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jason/Development/claude/openfda-tools/build/CMakeFiles 9
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/openfda_ndc_downloader.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jason/Development/claude/openfda-tools/build/CMakeFiles 0
 .PHONY : CMakeFiles/openfda_ndc_downloader.dir/rule
@@ -99,6 +101,32 @@ openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/rule
 CMakeFiles/openfda_ndc_downloader.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/clean
 .PHONY : CMakeFiles/openfda_ndc_downloader.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/test_error_logger.dir
+
+# All Build rule for target.
+CMakeFiles/test_error_logger.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=10,11,12 "Built target test_error_logger"
+.PHONY : CMakeFiles/test_error_logger.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/test_error_logger.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jason/Development/claude/openfda-tools/build/CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/test_error_logger.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/jason/Development/claude/openfda-tools/build/CMakeFiles 0
+.PHONY : CMakeFiles/test_error_logger.dir/rule
+
+# Convenience name for target.
+test_error_logger: CMakeFiles/test_error_logger.dir/rule
+.PHONY : test_error_logger
+
+# clean rule for target.
+CMakeFiles/test_error_logger.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/clean
+.PHONY : CMakeFiles/test_error_logger.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

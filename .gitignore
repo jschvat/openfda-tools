@@ -1,0 +1,75 @@
+# Build directories
+build/
+build_test/
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles/
+*.cmake
+Makefile
+compile_commands.json
+
+# Executable files
+openfda_ndc_downloader
+test_error_logger
+test_fda_ndc_fields
+test_date_format
+
+# Object files
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# Database configuration files
+*.nfo
+database.nfo
+*.conf
+
+# Log files and directories
+logs/
+test_logs/
+*.log
+
+# Downloaded data files
+*.zip
+*.json
+temp_openfda/
+Drug_Label_part_*.zip
+drug-*.json
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Core dumps
+core
+core.*
+
+# MySQL test files
+test_mysql_limits.sql
+
+# System files
+Thumbs.db
+.directory
+
+# Archive files
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+
+# Backup files
+*.orig

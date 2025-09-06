@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/include/jsoncpp
+CXX_INCLUDES = -I/usr/include/jsoncpp -I/usr/include/mysql
 
-CXX_FLAGS = -std=gnu++17
+CXX_FLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -std=gnu++17
 

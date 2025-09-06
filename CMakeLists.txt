@@ -1,48 +1,70 @@
 cmake_minimum_required(VERSION 3.10)
-project(OpenFDANDCDownloader)
+project(OpenFDADownloader)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Find required packages
 find_package(PkgConfig REQUIRED)
-find_package(Threads REQUIRED)
-
-# Find required libraries
 pkg_check_modules(JSONCPP REQUIRED jsoncpp)
-find_path(CURL_INCLUDE_DIR curl/curl.h)
-find_library(CURL_LIBRARY curl)
-find_path(MYSQL_INCLUDE_DIR mysql/mysql.h)
-find_library(MYSQL_LIBRARY mysqlclient)
+pkg_check_modules(CURL REQUIRED libcurl)
 
-# Check if all libraries are found
-if(NOT CURL_INCLUDE_DIR OR NOT CURL_LIBRARY)
-    message(FATAL_ERROR "libcurl not found. Install with: sudo apt-get install libcurl4-openssl-dev")
-endif()
+# Find ncurses
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(NCURSES REQUIRED ncurses)
 
-if(NOT MYSQL_INCLUDE_DIR OR NOT MYSQL_LIBRARY)
-    message(FATAL_ERROR "MySQL client library not found. Install with: sudo apt-get install libmysqlclient-dev")
-endif()
+# Find MySQL
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MYSQL REQUIRED mysqlclient)
 
-# Create the executable
-add_executable(openfda_ndc_downloader openfda_ndc_downloader.cpp)
+# Create the main executable with all modular source files
+add_executable(openfda_ndc_downloader
+    main.cpp
+    database.cpp
+    database_insertions.cpp
+    data_processor.cpp
+    error_logger.cpp
+    network.cpp
+    tui.cpp
+    interactive.cpp
+)
 
-# Link libraries
-target_link_libraries(openfda_ndc_downloader 
-    ${CURL_LIBRARY}
-    ${MYSQL_LIBRARY}
+# Link all required libraries
+target_link_libraries(openfda_ndc_downloader
     ${JSONCPP_LIBRARIES}
-    Threads::Threads
+    ${CURL_LIBRARIES}
+    ${NCURSES_LIBRARIES}
+    ${MYSQL_LIBRARIES}
 )
 
 # Include directories
 target_include_directories(openfda_ndc_downloader PRIVATE
-    ${CURL_INCLUDE_DIR}
-    ${MYSQL_INCLUDE_DIR}
+    ${JSONCPP_INCLUDE_DIRS}
+    ${CURL_INCLUDE_DIRS}
+    ${NCURSES_INCLUDE_DIRS}
+    ${MYSQL_INCLUDE_DIRS}
+)
+
+# Compile options
+target_compile_options(openfda_ndc_downloader PRIVATE 
+    ${JSONCPP_CFLAGS_OTHER}
+    ${CURL_CFLAGS_OTHER}
+    ${NCURSES_CFLAGS_OTHER}
+    ${MYSQL_CFLAGS_OTHER}
+)
+
+# Optional: Create a separate test executable for error logger
+add_executable(test_error_logger
+    test_error_logger.cpp
+    error_logger.cpp
+)
+
+target_link_libraries(test_error_logger
+    ${JSONCPP_LIBRARIES}
+)
+
+target_include_directories(test_error_logger PRIVATE
     ${JSONCPP_INCLUDE_DIRS}
 )
 
-# Compiler flags
-target_compile_options(openfda_ndc_downloader PRIVATE ${JSONCPP_CFLAGS_OTHER})
-
-# Install target
-install(TARGETS openfda_ndc_downloader DESTINATION bin)
+target_compile_options(test_error_logger PRIVATE ${JSONCPP_CFLAGS_OTHER})

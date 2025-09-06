@@ -85,51 +85,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
 # The main all target
 all: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/jason/Development/claude/openfda-tools/build/CMakeFiles /home/jason/Development/claude/openfda-tools/build//CMakeFiles/progress.marks
@@ -174,29 +129,237 @@ openfda_ndc_downloader/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/build
 .PHONY : openfda_ndc_downloader/fast
 
-openfda_ndc_downloader.o: openfda_ndc_downloader.cpp.o
-.PHONY : openfda_ndc_downloader.o
+#=============================================================================
+# Target rules for targets named test_error_logger
+
+# Build rule for target.
+test_error_logger: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_error_logger
+.PHONY : test_error_logger
+
+# fast build rule for target.
+test_error_logger/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/build
+.PHONY : test_error_logger/fast
+
+data_processor.o: data_processor.cpp.o
+.PHONY : data_processor.o
 
 # target to build an object file
-openfda_ndc_downloader.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.o
-.PHONY : openfda_ndc_downloader.cpp.o
+data_processor.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/data_processor.cpp.o
+.PHONY : data_processor.cpp.o
 
-openfda_ndc_downloader.i: openfda_ndc_downloader.cpp.i
-.PHONY : openfda_ndc_downloader.i
+data_processor.i: data_processor.cpp.i
+.PHONY : data_processor.i
 
 # target to preprocess a source file
-openfda_ndc_downloader.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.i
-.PHONY : openfda_ndc_downloader.cpp.i
+data_processor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/data_processor.cpp.i
+.PHONY : data_processor.cpp.i
 
-openfda_ndc_downloader.s: openfda_ndc_downloader.cpp.s
-.PHONY : openfda_ndc_downloader.s
+data_processor.s: data_processor.cpp.s
+.PHONY : data_processor.s
 
 # target to generate assembly for a file
-openfda_ndc_downloader.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/openfda_ndc_downloader.cpp.s
-.PHONY : openfda_ndc_downloader.cpp.s
+data_processor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/data_processor.cpp.s
+.PHONY : data_processor.cpp.s
+
+database.o: database.cpp.o
+.PHONY : database.o
+
+# target to build an object file
+database.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/database.cpp.o
+.PHONY : database.cpp.o
+
+database.i: database.cpp.i
+.PHONY : database.i
+
+# target to preprocess a source file
+database.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/database.cpp.i
+.PHONY : database.cpp.i
+
+database.s: database.cpp.s
+.PHONY : database.s
+
+# target to generate assembly for a file
+database.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/database.cpp.s
+.PHONY : database.cpp.s
+
+database_insertions.o: database_insertions.cpp.o
+.PHONY : database_insertions.o
+
+# target to build an object file
+database_insertions.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/database_insertions.cpp.o
+.PHONY : database_insertions.cpp.o
+
+database_insertions.i: database_insertions.cpp.i
+.PHONY : database_insertions.i
+
+# target to preprocess a source file
+database_insertions.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/database_insertions.cpp.i
+.PHONY : database_insertions.cpp.i
+
+database_insertions.s: database_insertions.cpp.s
+.PHONY : database_insertions.s
+
+# target to generate assembly for a file
+database_insertions.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/database_insertions.cpp.s
+.PHONY : database_insertions.cpp.s
+
+error_logger.o: error_logger.cpp.o
+.PHONY : error_logger.o
+
+# target to build an object file
+error_logger.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/error_logger.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/error_logger.cpp.o
+.PHONY : error_logger.cpp.o
+
+error_logger.i: error_logger.cpp.i
+.PHONY : error_logger.i
+
+# target to preprocess a source file
+error_logger.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/error_logger.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/error_logger.cpp.i
+.PHONY : error_logger.cpp.i
+
+error_logger.s: error_logger.cpp.s
+.PHONY : error_logger.s
+
+# target to generate assembly for a file
+error_logger.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/error_logger.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/error_logger.cpp.s
+.PHONY : error_logger.cpp.s
+
+interactive.o: interactive.cpp.o
+.PHONY : interactive.o
+
+# target to build an object file
+interactive.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/interactive.cpp.o
+.PHONY : interactive.cpp.o
+
+interactive.i: interactive.cpp.i
+.PHONY : interactive.i
+
+# target to preprocess a source file
+interactive.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/interactive.cpp.i
+.PHONY : interactive.cpp.i
+
+interactive.s: interactive.cpp.s
+.PHONY : interactive.s
+
+# target to generate assembly for a file
+interactive.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/interactive.cpp.s
+.PHONY : interactive.cpp.s
+
+main.o: main.cpp.o
+.PHONY : main.o
+
+# target to build an object file
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/main.cpp.o
+.PHONY : main.cpp.o
+
+main.i: main.cpp.i
+.PHONY : main.i
+
+# target to preprocess a source file
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/main.cpp.i
+.PHONY : main.cpp.i
+
+main.s: main.cpp.s
+.PHONY : main.s
+
+# target to generate assembly for a file
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/main.cpp.s
+.PHONY : main.cpp.s
+
+network.o: network.cpp.o
+.PHONY : network.o
+
+# target to build an object file
+network.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/network.cpp.o
+.PHONY : network.cpp.o
+
+network.i: network.cpp.i
+.PHONY : network.i
+
+# target to preprocess a source file
+network.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/network.cpp.i
+.PHONY : network.cpp.i
+
+network.s: network.cpp.s
+.PHONY : network.s
+
+# target to generate assembly for a file
+network.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/network.cpp.s
+.PHONY : network.cpp.s
+
+test_error_logger.o: test_error_logger.cpp.o
+.PHONY : test_error_logger.o
+
+# target to build an object file
+test_error_logger.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/test_error_logger.cpp.o
+.PHONY : test_error_logger.cpp.o
+
+test_error_logger.i: test_error_logger.cpp.i
+.PHONY : test_error_logger.i
+
+# target to preprocess a source file
+test_error_logger.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/test_error_logger.cpp.i
+.PHONY : test_error_logger.cpp.i
+
+test_error_logger.s: test_error_logger.cpp.s
+.PHONY : test_error_logger.s
+
+# target to generate assembly for a file
+test_error_logger.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/test_error_logger.cpp.s
+.PHONY : test_error_logger.cpp.s
+
+tui.o: tui.cpp.o
+.PHONY : tui.o
+
+# target to build an object file
+tui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/tui.cpp.o
+.PHONY : tui.cpp.o
+
+tui.i: tui.cpp.i
+.PHONY : tui.i
+
+# target to preprocess a source file
+tui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/tui.cpp.i
+.PHONY : tui.cpp.i
+
+tui.s: tui.cpp.s
+.PHONY : tui.s
+
+# target to generate assembly for a file
+tui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/tui.cpp.s
+.PHONY : tui.cpp.s
 
 # Help Target
 help:
@@ -205,15 +368,36 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... install"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... openfda_ndc_downloader"
-	@echo "... openfda_ndc_downloader.o"
-	@echo "... openfda_ndc_downloader.i"
-	@echo "... openfda_ndc_downloader.s"
+	@echo "... test_error_logger"
+	@echo "... data_processor.o"
+	@echo "... data_processor.i"
+	@echo "... data_processor.s"
+	@echo "... database.o"
+	@echo "... database.i"
+	@echo "... database.s"
+	@echo "... database_insertions.o"
+	@echo "... database_insertions.i"
+	@echo "... database_insertions.s"
+	@echo "... error_logger.o"
+	@echo "... error_logger.i"
+	@echo "... error_logger.s"
+	@echo "... interactive.o"
+	@echo "... interactive.i"
+	@echo "... interactive.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
+	@echo "... network.o"
+	@echo "... network.i"
+	@echo "... network.s"
+	@echo "... test_error_logger.o"
+	@echo "... test_error_logger.i"
+	@echo "... test_error_logger.s"
+	@echo "... tui.o"
+	@echo "... tui.i"
+	@echo "... tui.s"
 .PHONY : help
 
 
