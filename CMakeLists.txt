@@ -17,16 +17,21 @@ pkg_check_modules(NCURSES REQUIRED ncurses)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MYSQL REQUIRED mysqlclient)
 
+# Find PostgreSQL
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PGSQL REQUIRED libpq)
+
 # Create the main executable with all modular source files
 add_executable(openfda_ndc_downloader
-    main.cpp
-    database.cpp
-    database_insertions.cpp
-    data_processor.cpp
-    error_logger.cpp
-    network.cpp
-    tui.cpp
-    interactive.cpp
+    src/main.cpp
+    src/database.cpp
+    src/database_connection.cpp
+    src/database_insertions.cpp
+    src/data_processor.cpp
+    src/error_logger.cpp
+    src/network.cpp
+    src/tui.cpp
+    src/interactive.cpp
 )
 
 # Link all required libraries
@@ -35,14 +40,17 @@ target_link_libraries(openfda_ndc_downloader
     ${CURL_LIBRARIES}
     ${NCURSES_LIBRARIES}
     ${MYSQL_LIBRARIES}
+    ${PGSQL_LIBRARIES}
 )
 
 # Include directories
 target_include_directories(openfda_ndc_downloader PRIVATE
+    include/
     ${JSONCPP_INCLUDE_DIRS}
     ${CURL_INCLUDE_DIRS}
     ${NCURSES_INCLUDE_DIRS}
     ${MYSQL_INCLUDE_DIRS}
+    ${PGSQL_INCLUDE_DIRS}
 )
 
 # Compile options
@@ -51,12 +59,13 @@ target_compile_options(openfda_ndc_downloader PRIVATE
     ${CURL_CFLAGS_OTHER}
     ${NCURSES_CFLAGS_OTHER}
     ${MYSQL_CFLAGS_OTHER}
+    ${PGSQL_CFLAGS_OTHER}
 )
 
 # Optional: Create a separate test executable for error logger
 add_executable(test_error_logger
-    test_error_logger.cpp
-    error_logger.cpp
+    tests/test_error_logger.cpp
+    src/error_logger.cpp
 )
 
 target_link_libraries(test_error_logger
@@ -64,6 +73,7 @@ target_link_libraries(test_error_logger
 )
 
 target_include_directories(test_error_logger PRIVATE
+    include/
     ${JSONCPP_INCLUDE_DIRS}
 )
 

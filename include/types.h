@@ -11,13 +11,21 @@ enum class DataSource {
     FDA_NDC_BULK
 };
 
+enum class DatabaseType {
+    MYSQL,
+    POSTGRESQL
+};
+
 struct DatabaseConfig {
+    DatabaseType type;
     std::string host;
     int port;
     std::string user;
     std::string password;
     std::string database;
     std::string schema;
+    
+    DatabaseConfig() : type(DatabaseType::MYSQL), port(3306) {}
 };
 
 struct DataSourceConfig {

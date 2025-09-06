@@ -139,12 +139,12 @@ bool InteractiveManager::handleDataDownload() {
 bool InteractiveManager::handleDatabaseManagement() {
     std::vector<std::string> dbOptions = {
         "Clear Tables - Remove data from tables",
-        "View Status - Show connection and table info",
+        "View Status - Show connection and table info", 
         "Test Connection - Verify MySQL connectivity",
         "Return to Main Menu"
     };
     
-    int choice = tui.showMenu(dbOptions, "Database Management Options", 90);
+    int choice = tui.showMenu(dbOptions, "Database Management Options", 60);
     
     switch (choice) {
         case 1: // Clear Database
@@ -177,11 +177,11 @@ bool InteractiveManager::handleConfiguration() {
     std::vector<std::string> configOptions = {
         "Edit Database Config - Modify connection settings",
         "Save Config - Save settings to file",
-        "Load Config File - Load existing settings",
+        "Load Config File - Load existing settings", 
         "Return to Main Menu"
     };
     
-    int choice = tui.showMenu(configOptions, "Configuration Management", 90);
+    int choice = tui.showMenu(configOptions, "Configuration Management", 60);
     
     switch (choice) {
         case 1: // Edit Database Config
@@ -206,13 +206,13 @@ bool InteractiveManager::handleConfiguration() {
 DataSource InteractiveManager::selectDataSource() {
     std::vector<std::string> dataSourceOptions = {
         "NDC API - Multiple API requests (slower, current)",
-        "NDC Bulk - Single file (faster)",
+        "NDC Bulk - Single file (faster)", 
         "DrugsFDA Bulk - Single file (approval data)",
         "Drug Label Bulk - 13 files (comprehensive labels)",
         "FDA NDC Bulk - Single file (normalized NDC)"
     };
     
-    int choice = tui.showMenu(dataSourceOptions, "Select Data Source for Download", 100);
+    int choice = tui.showMenu(dataSourceOptions, "Select Data Source for Download", 70);
     
     switch (choice) {
         case 1: return DataSource::NDC_API;
@@ -227,14 +227,14 @@ DataSource InteractiveManager::selectDataSource() {
 bool InteractiveManager::handleClearDatabase() {
     std::vector<std::string> clearOptions = {
         "Clear NDC Table - Remove NDC records",
-        "Clear DrugsFDA Table - Remove DrugsFDA records",
-        "Clear Drug Label Table - Remove label records", 
+        "Clear DrugsFDA Table - Remove DrugsFDA records", 
+        "Clear Drug Label Table - Remove label records",
         "Clear FDA NDC Table - Remove FDA NDC records",
         "Clear All Tables - Remove all data",
         "Cancel - Return without clearing"
     };
     
-    int choice = tui.showMenu(clearOptions, "Select Tables to Clear", 90);
+    int choice = tui.showMenu(clearOptions, "Select Tables to Clear", 60);
     
     if (choice == -1 || choice == 6) {
         return true; // User cancelled
@@ -280,35 +280,22 @@ bool InteractiveManager::handleClearDatabase() {
 bool InteractiveManager::handleDatabaseStatus() {
     tui.updateStatus("Retrieving database status...");
     
-    // Switch to console briefly to show status
-    tui.cleanup();
+    // Test database connection
+    bool connection_ok = db_manager.initializeDatabase();
     
-    std::cout << "\n=== Database Status ===" << std::endl;
-    std::cout << "Testing database connection..." << std::endl;
+    // Check table status
+    std::vector<std::pair<std::string, bool>> tables;
+    std::vector<std::string> table_names = {"ndc_data", "drugsfda_data", "drug_label_data", "fda_ndc_data"};
     
-    if (db_manager.initializeDatabase()) {
-        std::cout << "✓ Database connection: OK" << std::endl;
-        
-        // Check table status
-        std::vector<std::string> tables = {"ndc_data", "drugsfda_data", "drug_label_data", "fda_ndc_data"};
-        for (const auto& table : tables) {
-            if (db_manager.tableExists(table)) {
-                std::cout << "✓ Table " << table << ": EXISTS" << std::endl;
-            } else {
-                std::cout << "✗ Table " << table << ": NOT FOUND" << std::endl;
-            }
+    if (connection_ok) {
+        for (const auto& table_name : table_names) {
+            bool exists = db_manager.tableExists(table_name);
+            tables.push_back(std::make_pair(table_name, exists));
         }
-    } else {
-        std::cout << "✗ Database connection: FAILED" << std::endl;
     }
     
-    std::cout << "\nPress Enter to continue...";
-    std::cin.get();
-    
-    // Reinitialize TUI
-    if (!tui.initialize()) {
-        return false;
-    }
+    // Show status in TUI dialog
+    tui.showDatabaseStatus(connection_ok, tables);
     
     return true;
 }

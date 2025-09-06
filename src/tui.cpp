@@ -12,7 +12,6 @@ AdvancedTUI::~AdvancedTUI() {
 
 bool AdvancedTUI::initialize() {
     // Initialize ncurses
-    initscr();
     if (initscr() == nullptr) {
         return false;
     }
@@ -26,9 +25,9 @@ bool AdvancedTUI::initialize() {
     getmaxyx(stdscr, height, width);
     
     // Ensure minimum dimensions
-    if (height < 20 || width < 100) {
+    if (height < 24 || width < 80) {
         endwin();
-        std::cerr << "Terminal too small. Minimum size: 100x20" << std::endl;
+        std::cerr << "Terminal too small. Minimum size: 80x24" << std::endl;
         return false;
     }
     
@@ -104,6 +103,7 @@ int AdvancedTUI::showMenu(const std::vector<std::string>& options, const std::st
     WINDOW* menu_win = newwin(menu_height, menu_width, start_y, start_x);
     if (!menu_win) return -1;
     
+    keypad(menu_win, TRUE);  // Enable arrow keys for this window
     wbkgd(menu_win, COLOR_PAIR(4));
     box(menu_win, 0, 0);
     
@@ -125,6 +125,9 @@ int AdvancedTUI::showMenu(const std::vector<std::string>& options, const std::st
         // Draw options
         for (size_t i = 0; i < options.size(); i++) {
             int y = 4 + i;
+            
+            // Clear the entire line first
+            mvwhline(menu_win, y, 1, ' ', menu_width - 2);
             
             if (i == current_option) {
                 if (has_colors()) wattron(menu_win, COLOR_PAIR(2) | A_BOLD);
@@ -180,14 +183,14 @@ int AdvancedTUI::showMenu(const std::vector<std::string>& options, const std::st
 
 int AdvancedTUI::showMainMenu() {
     std::vector<std::string> mainOptions = {
-        "1. Download FDA Data - Select data source and process pharmaceutical data",
-        "2. Database Management - Clear tables, manage connections, view status",
-        "3. Configuration - Edit database settings and save configurations",
-        "4. Exit - Quit the application"
+        "Download FDA Data - Select data source and process pharmaceutical data",
+        "Database Management - Clear tables, manage connections, view status", 
+        "Configuration - Edit database settings and save configurations",
+        "Exit - Quit the application"
     };
     
     updateStatus("Main Menu - Select an option to continue");
-    return showMenu(mainOptions, "OpenFDA Data Downloader - Main Menu", 90);
+    return showMenu(mainOptions, "OpenFDA Data Downloader - Main Menu", 70);
 }
 
 bool AdvancedTUI::showYesNoDialog(const std::string& question) {
@@ -201,6 +204,7 @@ bool AdvancedTUI::showYesNoDialog(const std::string& question) {
     WINDOW* dialog = newwin(dialog_height, dialog_width, start_y, start_x);
     if (!dialog) return false;
     
+    keypad(dialog, TRUE);  // Enable arrow keys for this window
     wbkgd(dialog, COLOR_PAIR(4));
     box(dialog, 0, 0);
     
@@ -268,6 +272,7 @@ std::string AdvancedTUI::getStringInput(const std::string& prompt, const std::st
     WINDOW* dialog = newwin(dialog_height, dialog_width, start_y, start_x);
     if (!dialog) return default_value;
     
+    keypad(dialog, TRUE);  // Enable arrow keys for this window
     wbkgd(dialog, COLOR_PAIR(4));
     box(dialog, 0, 0);
     
@@ -355,12 +360,26 @@ bool AdvancedTUI::editDatabaseConfig(DatabaseConfig& config) {
     
     showMessage("Database Configuration Editor", 1500);
     
+    // Select database type first
+    std::vector<std::string> dbTypeOptions = {
+        "MySQL - Traditional relational database",
+        "PostgreSQL - Advanced relational database"
+    };
+    
+    int typeChoice = showMenu(dbTypeOptions, "Select Database Type", 50);
+    if (typeChoice == -1) return false; // User cancelled
+    
+    config.type = (typeChoice == 1) ? DatabaseType::MYSQL : DatabaseType::POSTGRESQL;
+    
+    // Set appropriate default port based on database type
+    int defaultPort = (config.type == DatabaseType::POSTGRESQL) ? 5432 : 3306;
+    
     // Edit each field
     config.host = getStringInput("Database Host:", config.host.empty() ? "localhost" : config.host);
     if (config.host.empty()) return false;
     
     std::string port_str = getStringInput("Database Port:", 
-        config.port == 0 ? "3306" : std::to_string(config.port));
+        config.port == 0 ? std::to_string(defaultPort) : std::to_string(config.port));
     if (port_str.empty()) return false;
     config.port = std::stoi(port_str);
     
@@ -405,14 +424,15 @@ void AdvancedTUI::showDatabaseConfigSummary(const DatabaseConfig& config) {
     mvwhline(summary, 2, 1, ACS_HLINE, summary_width - 2);
     
     // Configuration details
-    mvwprintw(summary, 4, 3, "Host: %s", config.host.c_str());
-    mvwprintw(summary, 5, 3, "Port: %d", config.port);
-    mvwprintw(summary, 6, 3, "User: %s", config.user.c_str());
-    mvwprintw(summary, 7, 3, "Password: %s", config.password.empty() ? "(empty)" : std::string(config.password.length(), '*').c_str());
-    mvwprintw(summary, 8, 3, "Database: %s", config.database.c_str());
-    mvwprintw(summary, 9, 3, "Schema: %s", config.schema.c_str());
+    mvwprintw(summary, 4, 3, "Type: %s", (config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL"));
+    mvwprintw(summary, 5, 3, "Host: %s", config.host.c_str());
+    mvwprintw(summary, 6, 3, "Port: %d", config.port);
+    mvwprintw(summary, 7, 3, "User: %s", config.user.c_str());
+    mvwprintw(summary, 8, 3, "Password: %s", config.password.empty() ? "(empty)" : std::string(config.password.length(), '*').c_str());
+    mvwprintw(summary, 9, 3, "Database: %s", config.database.c_str());
+    mvwprintw(summary, 10, 3, "Schema: %s", config.schema.c_str());
     
-    mvwprintw(summary, 10, 3, "Press any key to continue...");
+    mvwprintw(summary, 11, 3, "Press any key to continue...");
     
     wrefresh(summary);
     wgetch(summary);
@@ -429,6 +449,7 @@ bool AdvancedTUI::saveDatabaseConfig(const DatabaseConfig& config, const std::st
     file << "# OpenFDA Database Configuration" << std::endl;
     file << "# Generated by OpenFDA Data Downloader" << std::endl;
     file << std::endl;
+    file << "type: " << (config.type == DatabaseType::POSTGRESQL ? "postgresql" : "mysql") << std::endl;
     file << "host: " << config.host << std::endl;
     file << "port: " << config.port << std::endl;
     file << "user: " << config.user << std::endl;
@@ -556,4 +577,72 @@ void AdvancedTUI::showOperationSummary(const std::string& operation, const std::
     wrefresh(summary);
     wgetch(summary);
     delwin(summary);
+}
+
+void AdvancedTUI::showDatabaseStatus(bool connection_ok, const std::vector<std::pair<std::string, bool>>& tables) {
+    if (!initialized) return;
+    
+    clear();
+    refresh();
+    
+    int status_width = 70;
+    int status_height = 10 + tables.size();
+    int start_y = (height - status_height) / 2;
+    int start_x = (width - status_width) / 2;
+    
+    // Ensure dialog fits on screen
+    if (start_y < 1) start_y = 1;
+    if (start_x < 1) start_x = 1;
+    if (status_height > height - 2) status_height = height - 2;
+    
+    WINDOW* status_win = newwin(status_height, status_width, start_y, start_x);
+    keypad(status_win, TRUE);
+    wbkgd(status_win, COLOR_PAIR(4));
+    box(status_win, 0, 0);
+    
+    // Title
+    if (has_colors()) wattron(status_win, COLOR_PAIR(1) | A_BOLD);
+    mvwprintw(status_win, 1, (status_width - 15) / 2, "Database Status");
+    if (has_colors()) wattroff(status_win, COLOR_PAIR(1) | A_BOLD);
+    
+    mvwhline(status_win, 2, 1, ACS_HLINE, status_width - 2);
+    
+    int line_y = 4;
+    
+    // Connection status
+    if (connection_ok) {
+        if (has_colors()) wattron(status_win, COLOR_PAIR(3)); // Green
+        mvwprintw(status_win, line_y++, 3, "✓ Database Connection: OK");
+        if (has_colors()) wattroff(status_win, COLOR_PAIR(3));
+    } else {
+        if (has_colors()) wattron(status_win, COLOR_PAIR(6)); // Red
+        mvwprintw(status_win, line_y++, 3, "✗ Database Connection: FAILED");
+        if (has_colors()) wattroff(status_win, COLOR_PAIR(6));
+    }
+    
+    line_y++; // Empty line
+    
+    // Table status
+    if (connection_ok && !tables.empty()) {
+        mvwprintw(status_win, line_y++, 3, "Table Status:");
+        
+        for (const auto& table : tables) {
+            if (table.second) {
+                if (has_colors()) wattron(status_win, COLOR_PAIR(3)); // Green
+                mvwprintw(status_win, line_y++, 5, "✓ Table %s: EXISTS", table.first.c_str());
+                if (has_colors()) wattroff(status_win, COLOR_PAIR(3));
+            } else {
+                if (has_colors()) wattron(status_win, COLOR_PAIR(6)); // Red
+                mvwprintw(status_win, line_y++, 5, "✗ Table %s: NOT FOUND", table.first.c_str());
+                if (has_colors()) wattroff(status_win, COLOR_PAIR(6));
+            }
+        }
+    }
+    
+    // Instructions
+    mvwprintw(status_win, status_height - 2, 3, "Press any key to continue...");
+    
+    wrefresh(status_win);
+    wgetch(status_win);
+    delwin(status_win);
 }

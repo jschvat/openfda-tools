@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/include/jsoncpp -I/usr/include/mysql
+CXX_INCLUDES = -I/home/jason/Development/claude/openfda-tools/include -I/usr/include/jsoncpp -I/usr/include/mysql
 
 CXX_FLAGS = -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -std=gnu++17
 

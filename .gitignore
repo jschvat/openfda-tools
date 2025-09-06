@@ -27,11 +27,23 @@ test_date_format
 *.nfo
 database.nfo
 *.conf
+config/*.nfo
+config/*.conf
 
 # Log files and directories
 logs/
 test_logs/
 *.log
+
+# Temporary directories and files
+temp_openfda/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Sample and test data
+sample_*.json
 
 # Downloaded data files
 *.zip

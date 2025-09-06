@@ -32,6 +32,7 @@ public:
     bool editDatabaseConfig(DatabaseConfig& config);
     bool saveDatabaseConfig(const DatabaseConfig& config, const std::string& filename);
     void showDatabaseConfigSummary(const DatabaseConfig& config);
+    void showDatabaseStatus(bool connection_ok, const std::vector<std::pair<std::string, bool>>& tables);
     
     // Configuration display
     void showConfigSummary(DataSource dataSource, bool clearDatabase, const std::string& configFile);

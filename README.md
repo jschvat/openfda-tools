@@ -17,7 +17,7 @@ This C++ program downloads drug data from OpenFDA sources, parses the JSON respo
 ### System Requirements
 
 - Linux/Unix system with build tools
-- MySQL server running
+- Database server running (MySQL or PostgreSQL)
 - CMake 3.10 or higher
 - C++17 compatible compiler (g++, clang++)
 - `unzip` utility (for bulk download extraction)
@@ -31,35 +31,92 @@ Install the following development libraries:
 sudo apt-get update
 sudo apt-get install build-essential cmake unzip
 sudo apt-get install libcurl4-openssl-dev
-sudo apt-get install libmysqlclient-dev
 sudo apt-get install libjsoncpp-dev
+
+# For MySQL support
+sudo apt-get install libmysqlclient-dev
+
+# For PostgreSQL support
+sudo apt-get install libpq-dev
 
 # CentOS/RHEL/Fedora
 sudo yum install gcc-c++ cmake unzip
 sudo yum install libcurl-devel
-sudo yum install mysql-devel
 sudo yum install jsoncpp-devel
+
+# For MySQL support
+sudo yum install mysql-devel
+
+# For PostgreSQL support  
+sudo yum install postgresql-devel
 
 # Or for newer versions:
 sudo dnf install gcc-c++ cmake unzip
 sudo dnf install libcurl-devel
-sudo dnf install mysql-devel
 sudo dnf install jsoncpp-devel
+sudo dnf install mysql-devel      # MySQL
+sudo dnf install libpq-devel      # PostgreSQL
+```
+
+## Project Structure
+
+```
+openfda-tools/
+├── src/                    # Source files
+├── include/                # Header files
+├── tests/                  # Test files
+├── config/                 # Configuration files
+├── logs/                   # Log output directory
+├── docs/                   # Documentation and samples
+├── build/                  # Build artifacts (auto-generated)
+├── CMakeLists.txt          # Build configuration
+└── README.md
 ```
 
 ## Database Setup
 
+The application supports both **MySQL** and **PostgreSQL** databases.
+
+### MySQL Setup
+
 1. Ensure you have MySQL server running and user credentials with database creation privileges.
 
-2. Create a `database.nfo` configuration file:
+2. Create a `database.nfo` configuration file (copy from sample):
+
+```bash
+cp config/database.nfo.sample database.nfo
+# Edit database.nfo with your MySQL settings:
+```
 
 ```
+type: mysql
 host: your_mysql_host
 port: 3306
 user: your_username
 password: your_password
 database: openfda
-schema: ndc_files
+schema: openfda
+```
+
+### PostgreSQL Setup
+
+1. Ensure you have PostgreSQL server running and user credentials with database creation privileges.
+
+2. Create a `database.nfo` configuration file (copy from PostgreSQL sample):
+
+```bash
+cp config/database-postgresql.nfo.sample database.nfo
+# Edit database.nfo with your PostgreSQL settings:
+```
+
+```
+type: postgresql
+host: your_postgresql_host
+port: 5432
+user: your_username
+password: your_password
+database: openfda
+schema: public
 ```
 
 **Note**: The program will automatically create the database and tables if they don't exist.
@@ -70,10 +127,8 @@ schema: ndc_files
 2. Build using CMake:
 
 ```bash
-mkdir build
-cd build
-cmake ..
-make
+cmake -B build -S .
+cmake --build build
 ```
 
 ## Usage
