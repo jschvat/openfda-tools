@@ -6,19 +6,27 @@
 #include <json/json.h>
 #include <string>
 #include <memory>
+#include <functional>
 
 class DatabaseManager {
 private:
     std::unique_ptr<DatabaseConnection> db_conn;
     DatabaseConfig db_config;
+    MultiDatabaseConfig multi_config;
+    bool is_multi_config;
+    bool is_interactive_mode;
     DataSource data_source;
     ErrorLogger* error_logger_ptr;
+    std::function<void(const std::string&)> tui_output_func;
 
 public:
     DatabaseManager();
     ~DatabaseManager();
     
+    // Configuration loading methods
     bool loadDatabaseConfig(const std::string& config_file);
+    bool loadMultiDatabaseConfig(const std::string& config_file);
+    bool switchDatabase(const std::string& database_name);
     bool initializeDatabase();
     bool ensureSchemaExists();
     
@@ -54,12 +62,16 @@ public:
     std::string formatDate(const std::string& dateStr);
     std::string formatNDCToStandard(const std::string& ndc);
     std::string getFirstElement(const Json::Value& parent, const std::string& key);
+    void outputMessage(const std::string& message);
     
     // Setters
     void setDataSource(DataSource source) { data_source = source; }
     void setErrorLogger(ErrorLogger* logger) { error_logger_ptr = logger; }
+    void setInteractiveMode(bool interactive) { is_interactive_mode = interactive; }
+    void setTUIOutput(std::function<void(const std::string&)> output_func) { tui_output_func = output_func; }
     
     // Getters
     DatabaseConnection* getConnection() const { return db_conn.get(); }
     DatabaseType getDatabaseType() const { return db_config.type; }
+    const DatabaseConfig& getDatabaseConfig() const { return db_config; }
 };

@@ -15,6 +15,7 @@ public:
     ~InteractiveManager();
     
     bool runInteractiveMode();
+    bool runInteractiveMode(const std::string& config_file);
     
 private:
     // Menu handlers
@@ -33,4 +34,13 @@ private:
     bool handleEditDatabaseConfig();
     bool handleSaveCurrentConfig();
     bool handleLoadConfigFile();
+    
+    // Enhanced database management
+    bool handleTestConnection();
+    bool handleCreateDatabaseAndTables();
+    bool handleSwitchDatabaseType();
+    
+    // Database initialization
+    void initializeDatabaseConnection();
+    void initializeDatabaseConnection(const std::string& config_file);
 };

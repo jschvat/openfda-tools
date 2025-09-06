@@ -28,6 +28,35 @@ struct DatabaseConfig {
     DatabaseConfig() : type(DatabaseType::MYSQL), port(3306) {}
 };
 
+// Multi-database configuration support
+struct MultiDatabaseConfig {
+    std::string active_database; // "mysql" or "postgresql"
+    DatabaseConfig mysql_config;
+    DatabaseConfig postgresql_config;
+    
+    // Get the currently active configuration
+    DatabaseConfig getActiveConfig() const {
+        if (active_database == "postgresql") {
+            return postgresql_config;
+        }
+        return mysql_config; // Default to MySQL if not specified
+    }
+    
+    // Set active database and return the config
+    DatabaseConfig selectDatabase(const std::string& db_name) {
+        active_database = db_name;
+        return getActiveConfig();
+    }
+    
+    MultiDatabaseConfig() : active_database("mysql") {
+        // Set default ports
+        mysql_config.type = DatabaseType::MYSQL;
+        mysql_config.port = 3306;
+        postgresql_config.type = DatabaseType::POSTGRESQL; 
+        postgresql_config.port = 5432;
+    }
+};
+
 struct DataSourceConfig {
     std::string name;
     std::string base_url;

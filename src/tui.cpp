@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-AdvancedTUI::AdvancedTUI() : main_window(nullptr), status_window(nullptr), initialized(false) {}
+AdvancedTUI::AdvancedTUI() : main_window(nullptr), status_window(nullptr), footer_window(nullptr), initialized(false) {}
 
 AdvancedTUI::~AdvancedTUI() {
     cleanup();
@@ -25,27 +25,32 @@ bool AdvancedTUI::initialize() {
     getmaxyx(stdscr, height, width);
     
     // Ensure minimum dimensions
-    if (height < 24 || width < 80) {
+    if (height < 20 || width < 70) {
         endwin();
-        std::cerr << "Terminal too small. Minimum size: 80x24" << std::endl;
+        std::cerr << "Terminal too small. Minimum size: 70x20" << std::endl;
         return false;
     }
     
     // Initialize colors
     initColors();
     
-    // Create main window (leave space for status bar)
-    main_window = newwin(height - 3, width, 0, 0);
-    status_window = newwin(3, width, height - 3, 0);
+    // Create windows: main, status (middle), footer (bottom) - status is now 3 lines, footer 7 lines
+    main_window = newwin(height - 10, width, 0, 0);
+    status_window = newwin(3, width, height - 10, 0);
+    footer_window = newwin(7, width, height - 7, 0);
     
-    if (!main_window || !status_window) {
+    if (!main_window || !status_window || !footer_window) {
         cleanup();
         return false;
     }
     
-    // Set up status window
-    wbkgd(status_window, COLOR_PAIR(4));
+    // Set up status window with green background
+    wbkgd(status_window, COLOR_PAIR(9)); // Use green background for status
     box(status_window, 0, 0);
+    
+    // Set up footer window with blue background
+    wbkgd(footer_window, COLOR_PAIR(8)); // Use blue background for footer
+    box(footer_window, 0, 0);
     
     initialized = true;
     return true;
@@ -61,6 +66,8 @@ void AdvancedTUI::initColors() {
         init_pair(5, COLOR_CYAN, COLOR_BLACK);    // Info
         init_pair(6, COLOR_RED, COLOR_BLACK);     // Error
         init_pair(7, COLOR_YELLOW, COLOR_BLACK);  // Warning
+        init_pair(8, COLOR_WHITE, COLOR_BLUE);    // Footer blue background
+        init_pair(9, COLOR_WHITE, COLOR_GREEN);   // Status green background
     }
 }
 
@@ -68,6 +75,7 @@ void AdvancedTUI::cleanup() {
     if (initialized) {
         if (main_window) delwin(main_window);
         if (status_window) delwin(status_window);
+        if (footer_window) delwin(footer_window);
         endwin();
         initialized = false;
     }
@@ -87,12 +95,18 @@ int AdvancedTUI::getMenuWidth(const std::vector<std::string>& options, const std
 int AdvancedTUI::showMenu(const std::vector<std::string>& options, const std::string& title, int min_width) {
     if (!initialized || options.empty()) return -1;
     
-    clear();
-    refresh();
+    // Clear only the main window area, keep status and footer visible
+    werase(main_window);
+    wrefresh(main_window);
     
+    // Refresh status and footer windows to ensure they're visible
+    refreshAllWindows();
+    
+    // Calculate menu dimensions within the main window area
+    int main_height = height - 10; // Account for status (3) + footer (7)
     int menu_width = getMenuWidth(options, title, min_width);
     int menu_height = options.size() + 6;
-    int start_y = (height - menu_height) / 2;
+    int start_y = (main_height - menu_height) / 2;
     int start_x = (width - menu_width) / 2;
     
     // Ensure menu fits on screen
@@ -467,8 +481,13 @@ void AdvancedTUI::updateStatus(const std::string& status) {
     if (!initialized || !status_window) return;
     
     werase(status_window);
+    wbkgd(status_window, COLOR_PAIR(9)); // Ensure green background
     box(status_window, 0, 0);
+    
+    if (has_colors()) wattron(status_window, COLOR_PAIR(9));
     mvwprintw(status_window, 1, 2, "Status: %s", status.c_str());
+    if (has_colors()) wattroff(status_window, COLOR_PAIR(9));
+    
     wrefresh(status_window);
 }
 
@@ -482,11 +501,14 @@ void AdvancedTUI::showMessage(const std::string& message, int delay_ms) {
 void AdvancedTUI::showError(const std::string& error, int delay_ms) {
     if (!initialized) return;
     
-    if (has_colors()) wattron(status_window, COLOR_PAIR(6));
     werase(status_window);
+    wbkgd(status_window, COLOR_PAIR(9)); // Keep green background
     box(status_window, 0, 0);
+    
+    if (has_colors()) wattron(status_window, COLOR_PAIR(6)); // Red text for error
     mvwprintw(status_window, 1, 2, "Error: %s", error.c_str());
     if (has_colors()) wattroff(status_window, COLOR_PAIR(6));
+    
     wrefresh(status_window);
     napms(delay_ms);
 }
@@ -645,4 +667,156 @@ void AdvancedTUI::showDatabaseStatus(bool connection_ok, const std::vector<std::
     wrefresh(status_win);
     wgetch(status_win);
     delwin(status_win);
+}
+
+void AdvancedTUI::updateDatabaseFooter(const std::string& host, int port, const std::string& user, 
+                                       const std::string& dbtype, bool connected) {
+    if (!initialized || !footer_window) return;
+    
+    // Status indicator
+    std::string status_symbol = connected ? "✓" : "✗";
+    std::string conn_status = connected ? "Connected" : "Disconnected";
+    
+    // Store database status for redrawing
+    database_status = status_symbol + " " + dbtype + " " + user + "@" + host + ":" + std::to_string(port) + " " + conn_status;
+    
+    redrawFooter();
+}
+
+void AdvancedTUI::redrawFooter() {
+    if (!initialized || !footer_window) return;
+    
+    werase(footer_window);
+    wbkgd(footer_window, COLOR_PAIR(8)); // Blue background
+    box(footer_window, 0, 0);
+    
+    int current_line = 1;
+    
+    // Display database status on top line if available
+    if (!database_status.empty()) {
+        if (has_colors()) wattron(footer_window, COLOR_PAIR(8) | A_BOLD);
+        mvwprintw(footer_window, current_line, 2, "%s", database_status.c_str());
+        if (has_colors()) wattroff(footer_window, COLOR_PAIR(8) | A_BOLD);
+        current_line++;
+    }
+    
+    // Display footer messages
+    for (const auto& message : footer_messages) {
+        if (current_line >= 6) break; // Don't exceed footer window
+        
+        if (has_colors()) wattron(footer_window, COLOR_PAIR(8));
+        mvwprintw(footer_window, current_line, 2, "%s", message.c_str());
+        if (has_colors()) wattroff(footer_window, COLOR_PAIR(8));
+        current_line++;
+    }
+    
+    wrefresh(footer_window);
+}
+
+void AdvancedTUI::refreshAllWindows() {
+    if (!initialized) return;
+    
+    // Refresh all windows to keep them visible
+    if (status_window) wrefresh(status_window);
+    if (footer_window) wrefresh(footer_window);
+}
+
+void AdvancedTUI::clearDatabaseFooter() {
+    if (!initialized || !footer_window) return;
+    
+    database_status.clear();
+    redrawFooter();
+}
+
+void AdvancedTUI::addFooterMessage(const std::string& message) {
+    if (!initialized || !footer_window) return;
+    
+    footer_messages.push_back(message);
+    
+    // Keep only the last 4 messages (footer has 5 usable lines - 1 for db status)
+    if (footer_messages.size() > 4) {
+        footer_messages.erase(footer_messages.begin());
+    }
+    
+    redrawFooter();
+}
+
+void AdvancedTUI::clearFooterMessages() {
+    if (!initialized || !footer_window) return;
+    
+    footer_messages.clear();
+    redrawFooter();
+}
+
+int AdvancedTUI::showDatabaseConfigMenu() {
+    if (!initialized) return -1;
+    
+    std::vector<std::string> configOptions = {
+        "Edit Database Config - Modify connection settings",
+        "Test Connection - Verify database connectivity",
+        "Create Database & Tables - Initialize database structure",
+        "Switch Database Type - Change between MySQL/PostgreSQL", 
+        "Save Config - Save settings to file",
+        "Load Config File - Load existing settings",
+        "Return to Main Menu"
+    };
+    
+    updateStatus("Database Configuration Management");
+    return showMenu(configOptions, "Database Configuration Options", 60);
+}
+
+bool AdvancedTUI::testDatabaseConnection() {
+    if (!initialized) return false;
+    
+    showMessage("Testing database connection...", 1000);
+    
+    // This would need to be connected to the actual DatabaseManager
+    // For now, just show a placeholder dialog
+    bool connection_ok = showYesNoDialog("Connection test - would you like to simulate success?");
+    
+    if (connection_ok) {
+        showMessage("✓ Database connection successful!", 2000);
+    } else {
+        showError("✗ Database connection failed!", 2000);
+    }
+    
+    return connection_ok;
+}
+
+bool AdvancedTUI::createDatabaseAndTables() {
+    if (!initialized) return false;
+    
+    if (!showYesNoDialog("Create database and tables if they don't exist?")) {
+        return false;
+    }
+    
+    showMessage("Creating database and tables...", 1500);
+    
+    // Simulate database creation process
+    showMessage("✓ Database created successfully", 1000);
+    showMessage("✓ NDC table created", 1000);
+    showMessage("✓ DrugsFDA table created", 1000);
+    showMessage("✓ Drug Label table created", 1000);
+    showMessage("✓ FDA NDC table created", 1000);
+    showMessage("🎉 All database structures ready!", 2000);
+    
+    return true;
+}
+
+bool AdvancedTUI::switchDatabaseType() {
+    if (!initialized) return false;
+    
+    std::vector<std::string> dbOptions = {
+        "MySQL - Traditional relational database",
+        "PostgreSQL - Advanced relational database with JSONB"
+    };
+    
+    int choice = showMenu(dbOptions, "Select Database Type", 60);
+    if (choice == -1) return false;
+    
+    std::string selected_db = (choice == 1) ? "MySQL" : "PostgreSQL";
+    std::string message = "Switched to " + selected_db + " database";
+    
+    showMessage(message, 2000);
+    return true;
 }

@@ -3,8 +3,9 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <vector>
 
-DatabaseManager::DatabaseManager() : db_conn(nullptr), error_logger_ptr(nullptr) {}
+DatabaseManager::DatabaseManager() : db_conn(nullptr), is_multi_config(false), is_interactive_mode(false), error_logger_ptr(nullptr), tui_output_func(nullptr) {}
 
 DatabaseManager::~DatabaseManager() {
     if (db_conn) {
@@ -13,13 +14,60 @@ DatabaseManager::~DatabaseManager() {
 }
 
 bool DatabaseManager::loadDatabaseConfig(const std::string& config_file) {
-    std::ifstream file(config_file);
+    std::vector<std::string> search_paths;
+    
+    // If config_file has a path (contains '/'), use it as-is first
+    if (config_file.find('/') != std::string::npos) {
+        search_paths.push_back(config_file);
+    } else {
+        // For relative filenames, search in multiple locations
+        search_paths.push_back(config_file);           // Current directory
+        search_paths.push_back("../" + config_file);   // Parent directory
+    }
+    
+    std::ifstream file;
+    std::string found_path;
+    
+    // Try each search path
+    for (const auto& path : search_paths) {
+        file.open(path);
+        if (file.is_open()) {
+            found_path = path;
+            outputMessage("✓ Found database config: " + found_path);
+            break;
+        }
+        file.clear(); // Clear any error flags
+    }
+    
     if (!file.is_open()) {
-        std::cerr << "Error: Cannot open config file " << config_file << std::endl;
+        std::cerr << "Error: Cannot open config file. Searched locations:" << std::endl;
+        for (const auto& path : search_paths) {
+            std::cerr << "  - " << path << std::endl;
+        }
         return false;
     }
     
     std::string line;
+    bool has_sections = false;
+    
+    // First pass: check if this is a multi-database config (has [sections])
+    while (std::getline(file, line)) {
+        if (!line.empty() && line[0] == '[' && line.back() == ']') {
+            has_sections = true;
+            break;
+        }
+    }
+    
+    // If it has sections, use multi-database parser
+    if (has_sections) {
+        file.close();
+        return loadMultiDatabaseConfig(found_path);
+    }
+    
+    // Reset file for single-database parsing
+    file.clear();
+    file.seekg(0);
+    
     while (std::getline(file, line)) {
         // Skip comments and empty lines
         if (line.empty() || line[0] == '#') continue;
@@ -70,18 +118,169 @@ bool DatabaseManager::loadDatabaseConfig(const std::string& config_file) {
         db_config.port = (db_config.type == DatabaseType::POSTGRESQL) ? 5432 : 3306;
     }
     
-    std::cout << "✓ Loaded database configuration:" << std::endl;
+    outputMessage("✓ Loaded database configuration:");
+    outputMessage("  Type: " + std::string(db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL"));
+    outputMessage("  Host: " + db_config.host + ":" + std::to_string(db_config.port));
+    outputMessage("  Database: " + db_config.database);
+    outputMessage("  Schema: " + db_config.schema);
+    
+    return true;
+}
+
+bool DatabaseManager::loadMultiDatabaseConfig(const std::string& config_file) {
+    std::vector<std::string> search_paths;
+    
+    // If config_file has a path (contains '/'), use it as-is first
+    if (config_file.find('/') != std::string::npos) {
+        search_paths.push_back(config_file);
+    } else {
+        // For relative filenames, search in multiple locations
+        search_paths.push_back(config_file);           // Current directory
+        search_paths.push_back("../" + config_file);   // Parent directory
+    }
+    
+    std::ifstream file;
+    std::string found_path;
+    
+    // Try each search path
+    for (const auto& path : search_paths) {
+        file.open(path);
+        if (file.is_open()) {
+            found_path = path;
+            if (!is_interactive_mode) {
+                std::cout << "✓ Found multi-database config: " << found_path << std::endl;
+            }
+            break;
+        }
+        file.clear(); // Clear any error flags
+    }
+    
+    if (!file.is_open()) {
+        std::cerr << "Error: Cannot open multi-database config file. Searched locations:" << std::endl;
+        for (const auto& path : search_paths) {
+            std::cerr << "  - " << path << std::endl;
+        }
+        return false;
+    }
+    
+    std::string line;
+    std::string current_section = "";
+    DatabaseConfig* current_config = nullptr;
+    
+    while (std::getline(file, line)) {
+        // Skip comments and empty lines
+        if (line.empty() || line[0] == '#') continue;
+        
+        // Check for section headers [mysql] or [postgresql]
+        if (line[0] == '[' && line.back() == ']') {
+            current_section = line.substr(1, line.length() - 2);
+            if (current_section == "mysql") {
+                current_config = &multi_config.mysql_config;
+            } else if (current_section == "postgresql") {
+                current_config = &multi_config.postgresql_config;
+            }
+            continue;
+        }
+        
+        size_t pos = line.find(':');
+        if (pos == std::string::npos) continue;
+        
+        std::string key = line.substr(0, pos);
+        std::string value = line.substr(pos + 1);
+        
+        // Trim whitespace
+        key.erase(0, key.find_first_not_of(" \t"));
+        key.erase(key.find_last_not_of(" \t") + 1);
+        value.erase(0, value.find_first_not_of(" \t"));
+        value.erase(value.find_last_not_of(" \t") + 1);
+        
+        // Handle global settings (not in a section)
+        if (current_section.empty()) {
+            if (key == "active_database") {
+                multi_config.active_database = value;
+            }
+            continue;
+        }
+        
+        // Handle database-specific settings
+        if (current_config) {
+            if (key == "host") {
+                current_config->host = value;
+            } else if (key == "port") {
+                current_config->port = std::stoi(value);
+            } else if (key == "user") {
+                current_config->user = value;
+            } else if (key == "password") {
+                current_config->password = value;
+            } else if (key == "database") {
+                current_config->database = value;
+            } else if (key == "schema") {
+                current_config->schema = value;
+            }
+        }
+    }
+    
+    file.close();
+    
+    // Set default ports if not specified
+    if (multi_config.mysql_config.port == 0) {
+        multi_config.mysql_config.port = 3306;
+    }
+    if (multi_config.postgresql_config.port == 0) {
+        multi_config.postgresql_config.port = 5432;
+    }
+    
+    // Set the active configuration
+    db_config = multi_config.getActiveConfig();
+    is_multi_config = true;
+    
+    if (!is_interactive_mode) {
+        std::cout << "✓ Loaded multi-database configuration:" << std::endl;
+        std::cout << "  Active: " << multi_config.active_database << std::endl;
+        std::cout << "  Type: " << (db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL") << std::endl;
+        std::cout << "  Host: " << db_config.host << ":" << db_config.port << std::endl;
+        std::cout << "  Database: " << db_config.database << std::endl;
+        std::cout << "  Schema: " << db_config.schema << std::endl;
+    }
+    
+    return true;
+}
+
+bool DatabaseManager::switchDatabase(const std::string& database_name) {
+    if (!is_multi_config) {
+        std::cerr << "Error: Not using multi-database configuration" << std::endl;
+        return false;
+    }
+    
+    if (database_name != "mysql" && database_name != "postgresql") {
+        std::cerr << "Error: Invalid database name. Use 'mysql' or 'postgresql'" << std::endl;
+        return false;
+    }
+    
+    // Disconnect current connection
+    if (db_conn && db_conn->isConnected()) {
+        db_conn->disconnect();
+        db_conn.reset();
+    }
+    
+    // Switch to new configuration
+    db_config = multi_config.selectDatabase(database_name);
+    
+    if (!is_interactive_mode) {
+        std::cout << "✓ Switched to " << database_name << " database" << std::endl;
+    }
     std::cout << "  Type: " << (db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL") << std::endl;
     std::cout << "  Host: " << db_config.host << ":" << db_config.port << std::endl;
     std::cout << "  Database: " << db_config.database << std::endl;
-    std::cout << "  Schema: " << db_config.schema << std::endl;
     
     return true;
 }
 
 bool DatabaseManager::initializeDatabase() {
     std::string db_type_name = (db_config.type == DatabaseType::POSTGRESQL) ? "PostgreSQL" : "MySQL";
-    std::cout << "⏳ Initializing " << db_type_name << " connection..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Initializing " << db_type_name << " connection..." << std::endl;
+    }
     
     // Create appropriate database connection
     db_conn = createDatabaseConnection(db_config.type);
@@ -108,12 +307,16 @@ bool DatabaseManager::initializeDatabase() {
         }
     }
     
-    std::cout << "✓ Connected to " << db_type_name << " server" << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "✓ Connected to " << db_type_name << " server" << std::endl;
+    }
     return true;
 }
 
 bool DatabaseManager::ensureSchemaExists() {
-    std::cout << "⏳ Checking database and schema..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Checking database and schema..." << std::endl;
+    }
     
     if (db_config.type == DatabaseType::MYSQL) {
         // For MySQL, create database if it doesn't exist
@@ -133,9 +336,42 @@ bool DatabaseManager::ensureSchemaExists() {
         }
         
     } else if (db_config.type == DatabaseType::POSTGRESQL) {
-        // For PostgreSQL, database should already exist (we connected to it)
-        // Create schema if it doesn't exist and it's different from database name
-        if (db_config.schema != db_config.database && !db_config.schema.empty()) {
+        // For PostgreSQL, we need to handle database creation differently
+        // First disconnect and connect to postgres system database
+        bool need_to_create_db = false;
+        std::string original_database = db_config.database;
+        
+        // Try connecting to the target database first
+        if (!db_conn->isConnected()) {
+            std::cerr << "❌ Error: Not connected to PostgreSQL server" << std::endl;
+            return false;
+        }
+        
+        // Check if database exists by trying to connect to it
+        std::string check_db_query = "SELECT 1 FROM pg_database WHERE datname = '" + db_config.database + "'";
+        std::vector<std::vector<std::string>> result;
+        if (!db_conn->executeQuery(check_db_query, result)) {
+            std::cerr << "❌ Error checking database existence: " << db_conn->getLastError() << std::endl;
+            return false;
+        }
+        
+        // If database doesn't exist, create it
+        if (result.empty()) {
+            std::cout << "🔧 Creating PostgreSQL database: " << db_config.database << std::endl;
+            std::string create_db_query = "CREATE DATABASE \"" + db_config.database + 
+                                         "\" WITH ENCODING='UTF8' LC_COLLATE='en_US.UTF-8' LC_CTYPE='en_US.UTF-8'";
+            
+            if (!db_conn->executeQuery(create_db_query)) {
+                std::cerr << "❌ Error creating database: " << db_conn->getLastError() << std::endl;
+                return false;
+            }
+            if (!is_interactive_mode) {
+                std::cout << "✓ Database '" << db_config.database << "' created successfully" << std::endl;
+            }
+        }
+        
+        // Now create schema if needed and it's different from database name
+        if (db_config.schema != "public" && !db_config.schema.empty()) {
             std::string create_schema_query = "CREATE SCHEMA IF NOT EXISTS \"" + db_config.schema + "\"";
             if (!db_conn->executeQuery(create_schema_query)) {
                 std::cerr << "❌ Error creating schema: " << db_conn->getLastError() << std::endl;
@@ -148,10 +384,15 @@ bool DatabaseManager::ensureSchemaExists() {
                 std::cerr << "❌ Error setting search path: " << db_conn->getLastError() << std::endl;
                 return false;
             }
+            if (!is_interactive_mode) {
+                std::cout << "✓ Schema '" << db_config.schema << "' ready" << std::endl;
+            }
         }
     }
     
-    std::cout << "✓ Database '" << db_config.database << "' ready" << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "✓ Database '" << db_config.database << "' ready" << std::endl;
+    }
     return true;
 }
 
@@ -221,7 +462,9 @@ bool DatabaseManager::clearTable(const std::string& tableName) {
 }
 
 bool DatabaseManager::clearDatabase() {
-    std::cout << "⏳ Clearing database tables..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Clearing database tables..." << std::endl;
+    }
     
     bool success = true;
     
@@ -261,7 +504,9 @@ bool DatabaseManager::clearDatabase() {
 // Table Creation Methods
 
 bool DatabaseManager::createNDCTable() {
-    std::cout << "⏳ Creating NDC data table..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Creating NDC data table..." << std::endl;
+    }
     
     std::string create_table_query = getNDCTableSchema();
     if (create_table_query.empty()) {
@@ -274,12 +519,16 @@ bool DatabaseManager::createNDCTable() {
         return false;
     }
     
-    std::cout << "✓ NDC table ready" << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "✓ NDC table ready" << std::endl;
+    }
     return true;
 }
 
 bool DatabaseManager::createDrugsFDATable() {
-    std::cout << "⏳ Creating DrugsFDA data table..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Creating DrugsFDA data table..." << std::endl;
+    }
     
     std::string create_table_query = getDrugsFDATableSchema();
     if (create_table_query.empty()) {
@@ -292,12 +541,16 @@ bool DatabaseManager::createDrugsFDATable() {
         return false;
     }
     
-    std::cout << "✓ DrugsFDA table ready" << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "✓ DrugsFDA table ready" << std::endl;
+    }
     return true;
 }
 
 bool DatabaseManager::createDrugLabelTable() {
-    std::cout << "⏳ Creating Drug Label data table..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Creating Drug Label data table..." << std::endl;
+    }
     
     std::string create_table_query = getDrugLabelTableSchema();
     if (create_table_query.empty()) {
@@ -310,12 +563,27 @@ bool DatabaseManager::createDrugLabelTable() {
         return false;
     }
     
-    std::cout << "✓ Drug Label table ready" << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "✓ Drug Label table ready" << std::endl;
+    }
     return true;
 }
 
 bool DatabaseManager::createFDANDCDataTable() {
-    std::cout << "⏳ Creating FDA NDC data table..." << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "⏳ Creating FDA NDC data table..." << std::endl;
+    }
+    
+    // Check if table exists and recreate it with new schema
+    if (tableExists("fda_ndc_data")) {
+        outputMessage("⚠️  FDA NDC table exists, recreating with new schema...");
+        
+        std::string drop_query = "DROP TABLE fda_ndc_data";
+        if (!db_conn->executeQuery(drop_query)) {
+            std::cerr << "❌ Error dropping old FDA NDC table: " << db_conn->getLastError() << std::endl;
+            return false;
+        }
+    }
     
     std::string create_table_query = getFDANDCDataTableSchema();
     if (create_table_query.empty()) {
@@ -328,7 +596,9 @@ bool DatabaseManager::createFDANDCDataTable() {
         return false;
     }
     
-    std::cout << "✓ FDA NDC Data table ready" << std::endl;
+    if (!is_interactive_mode) {
+        std::cout << "✓ FDA NDC Data table ready" << std::endl;
+    }
     return true;
 }
 
@@ -586,31 +856,31 @@ std::string DatabaseManager::getFDANDCDataTableSchema() {
             CREATE TABLE IF NOT EXISTS fda_ndc_data (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 product_ndc VARCHAR(255),
-                product_type_name VARCHAR(255),
-                proprietary_name TEXT,
-                proprietary_name_suffix TEXT,
-                nonproprietary_name TEXT,
-                dosage_form_name VARCHAR(255),
-                route_name VARCHAR(255),
-                start_marketing_date VARCHAR(50),
-                end_marketing_date VARCHAR(50),
-                marketing_category_name VARCHAR(255),
-                application_number_or_citation VARCHAR(255),
-                labeler_name TEXT,
+                manufacturer_name TEXT,
+                unii TEXT,
+                product_type VARCHAR(255),
+                spl_set_id VARCHAR(255),
+                route TEXT,
+                generic_name TEXT,
+                brand_name TEXT,
                 substance_name TEXT,
-                active_numerator_strength TEXT,
-                active_ingred_unit TEXT,
-                pharm_class_cs TEXT,
-                pharm_class_epc TEXT,
+                spl_id VARCHAR(255),
+                package_ndc VARCHAR(255),
+                application_number VARCHAR(255),
+                rxcui VARCHAR(255),
                 pharm_class_moa TEXT,
+                pharm_class_epc TEXT,
+                pharm_class_cs TEXT,
+                nui VARCHAR(255),
                 pharm_class_pe TEXT,
-                deaschedule_date VARCHAR(50),
-                listing_expiration_date VARCHAR(50),
-                openfda_data JSON,
+                dosage_form VARCHAR(255),
+                is_original_packager BOOLEAN,
+                original_packager_product_ndc VARCHAR(255),
+                upc VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE KEY uk_fda_ndc_product_ndc (product_ndc),
-                INDEX idx_fda_ndc_proprietary_name (proprietary_name(100)),
-                INDEX idx_fda_ndc_labeler_name (labeler_name(100))
+                INDEX idx_fda_ndc_manufacturer_name (manufacturer_name(100)),
+                INDEX idx_fda_ndc_brand_name (brand_name(100))
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
         )";
     } else if (db_config.type == DatabaseType::POSTGRESQL) {
@@ -618,33 +888,43 @@ std::string DatabaseManager::getFDANDCDataTableSchema() {
             CREATE TABLE IF NOT EXISTS fda_ndc_data (
                 id SERIAL PRIMARY KEY,
                 product_ndc VARCHAR(255),
-                product_type_name VARCHAR(255),
-                proprietary_name TEXT,
-                proprietary_name_suffix TEXT,
-                nonproprietary_name TEXT,
-                dosage_form_name VARCHAR(255),
-                route_name VARCHAR(255),
-                start_marketing_date VARCHAR(50),
-                end_marketing_date VARCHAR(50),
-                marketing_category_name VARCHAR(255),
-                application_number_or_citation VARCHAR(255),
-                labeler_name TEXT,
+                manufacturer_name TEXT,
+                unii TEXT,
+                product_type VARCHAR(255),
+                spl_set_id VARCHAR(255),
+                route TEXT,
+                generic_name TEXT,
+                brand_name TEXT,
                 substance_name TEXT,
-                active_numerator_strength TEXT,
-                active_ingred_unit TEXT,
-                pharm_class_cs TEXT,
-                pharm_class_epc TEXT,
+                spl_id VARCHAR(255),
+                package_ndc VARCHAR(255),
+                application_number VARCHAR(255),
+                rxcui VARCHAR(255),
                 pharm_class_moa TEXT,
+                pharm_class_epc TEXT,
+                pharm_class_cs TEXT,
+                nui VARCHAR(255),
                 pharm_class_pe TEXT,
-                deaschedule_date VARCHAR(50),
-                listing_expiration_date VARCHAR(50),
-                openfda_data JSONB,
+                dosage_form VARCHAR(255),
+                is_original_packager BOOLEAN,
+                original_packager_product_ndc VARCHAR(255),
+                upc VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT uk_fda_ndc_product_ndc UNIQUE (product_ndc)
             );
-            CREATE INDEX IF NOT EXISTS idx_fda_ndc_proprietary_name ON fda_ndc_data (proprietary_name);
-            CREATE INDEX IF NOT EXISTS idx_fda_ndc_labeler_name ON fda_ndc_data (labeler_name);
+            CREATE INDEX IF NOT EXISTS idx_fda_ndc_manufacturer_name ON fda_ndc_data (manufacturer_name);
+            CREATE INDEX IF NOT EXISTS idx_fda_ndc_brand_name ON fda_ndc_data (brand_name);
         )";
     }
     return "";
+}
+
+void DatabaseManager::outputMessage(const std::string& message) {
+    if (is_interactive_mode && tui_output_func) {
+        // Send to TUI footer
+        tui_output_func(message);
+    } else {
+        // Send to console
+        std::cout << message << std::endl;
+    }
 }

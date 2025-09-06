@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     // Run interactive mode if requested
     if (interactive_mode) {
         InteractiveManager interactive(db_manager);
-        bool success = interactive.runInteractiveMode();
+        bool success = interactive.runInteractiveMode(config_file);
         NetworkManager::globalCleanup();
         return success ? 0 : 1;
     }

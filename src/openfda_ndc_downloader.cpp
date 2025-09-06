@@ -1459,6 +1459,7 @@ public:
         menu_win = newwin(menu_height, menu_width, start_y, start_x);
         if (!menu_win) return -1;
         
+        keypad(menu_win, TRUE);  // Enable arrow keys for menu window
         box(menu_win, 0, 0);
         
         // Draw title
@@ -1484,7 +1485,7 @@ public:
         int selected = 0;
         int ch;
         
-        while ((ch = getch()) != 'q') {
+        while ((ch = wgetch(menu_win)) != 'q') {
             // Clear previous highlight
             mvwprintw(menu_win, 3 + selected, 2, "%d. %s", selected + 1, options[selected].c_str());
             

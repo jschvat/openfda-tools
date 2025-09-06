@@ -10,8 +10,11 @@ class AdvancedTUI {
 private:
     WINDOW* main_window;
     WINDOW* status_window;
+    WINDOW* footer_window;
     int height, width;
     bool initialized;
+    std::vector<std::string> footer_messages;
+    std::string database_status;
 
 public:
     AdvancedTUI();
@@ -34,6 +37,12 @@ public:
     void showDatabaseConfigSummary(const DatabaseConfig& config);
     void showDatabaseStatus(bool connection_ok, const std::vector<std::pair<std::string, bool>>& tables);
     
+    // Enhanced database management
+    int showDatabaseConfigMenu();
+    bool testDatabaseConnection();
+    bool createDatabaseAndTables();
+    bool switchDatabaseType();
+    
     // Configuration display
     void showConfigSummary(DataSource dataSource, bool clearDatabase, const std::string& configFile);
     void showOperationSummary(const std::string& operation, const std::string& details);
@@ -42,6 +51,11 @@ public:
     void showMessage(const std::string& message, int delay_ms = 2000);
     void showError(const std::string& error, int delay_ms = 3000);
     void updateStatus(const std::string& status);
+    void updateDatabaseFooter(const std::string& host, int port, const std::string& user, 
+                              const std::string& dbtype, bool connected);
+    void clearDatabaseFooter();
+    void addFooterMessage(const std::string& message);
+    void clearFooterMessages();
     
     // Utility methods
     void centerText(int y, const std::string& text);
@@ -50,6 +64,8 @@ public:
     
 private:
     void initColors();
+    void redrawFooter();
+    void refreshAllWindows();
     std::string trimString(const std::string& str);
     int getMenuWidth(const std::vector<std::string>& options, const std::string& title, int min_width);
 };

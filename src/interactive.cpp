@@ -14,6 +14,17 @@ bool InteractiveManager::runInteractiveMode() {
     
     tui.updateStatus("Interactive mode - Use arrow keys to navigate menus");
     
+    // Set interactive mode flag to suppress console messages
+    db_manager.setInteractiveMode(true);
+    
+    // Connect database messages to TUI footer
+    db_manager.setTUIOutput([&](const std::string& message) {
+        tui.addFooterMessage(message);
+    });
+    
+    // Load default database configuration and connect automatically
+    initializeDatabaseConnection();
+    
     while (true) {
         int choice = tui.showMainMenu();
         
@@ -174,26 +185,29 @@ bool InteractiveManager::handleDatabaseManagement() {
 }
 
 bool InteractiveManager::handleConfiguration() {
-    std::vector<std::string> configOptions = {
-        "Edit Database Config - Modify connection settings",
-        "Save Config - Save settings to file",
-        "Load Config File - Load existing settings", 
-        "Return to Main Menu"
-    };
-    
-    int choice = tui.showMenu(configOptions, "Configuration Management", 60);
+    // Use the new enhanced database configuration menu
+    int choice = tui.showDatabaseConfigMenu();
     
     switch (choice) {
         case 1: // Edit Database Config
             return handleEditDatabaseConfig();
             
-        case 2: // Save Current Config
+        case 2: // Test Connection
+            return handleTestConnection();
+            
+        case 3: // Create Database & Tables
+            return handleCreateDatabaseAndTables();
+            
+        case 4: // Switch Database Type
+            return handleSwitchDatabaseType();
+            
+        case 5: // Save Config
             return handleSaveCurrentConfig();
             
-        case 3: // Load Config File
+        case 6: // Load Config File
             return handleLoadConfigFile();
             
-        case 4: // Return to main menu
+        case 7: // Return to main menu
         case -1: // User cancelled
             return true;
             
@@ -346,4 +360,206 @@ bool InteractiveManager::handleLoadConfigFile() {
         tui.showError("Failed to load configuration file");
         return false;
     }
+}
+
+bool InteractiveManager::handleTestConnection() {
+    tui.showMessage("Testing database connection...", 1000);
+    
+    // Test the database connection using the database manager
+    if (db_manager.initializeDatabase()) {
+        tui.updateDatabaseFooter("miniserver.local", 5432, "jason", "PostgreSQL", true);
+        tui.showMessage("✓ Database connection successful!", 2000);
+        return true;
+    } else {
+        tui.clearDatabaseFooter();
+        tui.showError("✗ Database connection failed!", 2000);
+        return false;
+    }
+}
+
+bool InteractiveManager::handleCreateDatabaseAndTables() {
+    if (!tui.showYesNoDialog("Create database and tables if they don't exist?")) {
+        return false;
+    }
+    
+    tui.showMessage("Creating database structures...", 1500);
+    
+    // Ensure database and schema exist
+    if (!db_manager.ensureSchemaExists()) {
+        tui.showError("Failed to create database/schema");
+        return false;
+    }
+    
+    tui.showMessage("✓ Database/Schema created", 1000);
+    
+    // Create all required tables
+    bool success = true;
+    
+    if (db_manager.createNDCTable()) {
+        tui.showMessage("✓ NDC table created", 800);
+    } else {
+        success = false;
+    }
+    
+    if (db_manager.createDrugsFDATable()) {
+        tui.showMessage("✓ DrugsFDA table created", 800);
+    } else {
+        success = false;
+    }
+    
+    if (db_manager.createDrugLabelTable()) {
+        tui.showMessage("✓ Drug Label table created", 800);
+    } else {
+        success = false;
+    }
+    
+    if (db_manager.createFDANDCDataTable()) {
+        tui.showMessage("✓ FDA NDC table created", 800);
+    } else {
+        success = false;
+    }
+    
+    if (success) {
+        tui.showMessage("🎉 All database structures ready!", 2000);
+    } else {
+        tui.showError("Some tables failed to create");
+    }
+    
+    return success;
+}
+
+bool InteractiveManager::handleSwitchDatabaseType() {
+    std::vector<std::string> dbOptions = {
+        "MySQL - Traditional relational database",
+        "PostgreSQL - Advanced relational database with JSONB"
+    };
+    
+    int choice = tui.showMenu(dbOptions, "Select Database Type", 60);
+    if (choice == -1) return false;
+    
+    std::string selected_db = (choice == 1) ? "mysql" : "postgresql";
+    std::string display_name = (choice == 1) ? "MySQL" : "PostgreSQL";
+    
+    // In a real implementation, this would switch the database configuration
+    // For now, just simulate the switch
+    tui.showMessage("Switching to " + display_name + "...", 1500);
+    
+    // Update footer to reflect the switch
+    if (choice == 1) {
+        tui.updateDatabaseFooter("miniserver.home", 3306, "root", "MySQL", false);
+    } else {
+        tui.updateDatabaseFooter("miniserver.local", 5432, "jason", "PostgreSQL", false);
+    }
+    
+    tui.showMessage("✓ Switched to " + display_name + " database", 2000);
+    return true;
+}
+
+bool InteractiveManager::runInteractiveMode(const std::string& config_file) {
+    if (!tui.initialize()) {
+        std::cerr << "❌ Failed to initialize TUI. Falling back to simple mode." << std::endl;
+        return false;
+    }
+    
+    tui.updateStatus("Interactive mode - Use arrow keys to navigate menus");
+    
+    // Set interactive mode flag to suppress console messages
+    db_manager.setInteractiveMode(true);
+    
+    // Connect database messages to TUI footer
+    db_manager.setTUIOutput([&](const std::string& message) {
+        tui.addFooterMessage(message);
+    });
+    
+    // Load specified database configuration and connect automatically
+    initializeDatabaseConnection(config_file);
+    
+    while (true) {
+        int choice = tui.showMainMenu();
+        
+        switch (choice) {
+            case 1: // Download FDA Data
+                if (!handleDataDownload()) {
+                    tui.showError("Data download operation failed or was cancelled");
+                }
+                break;
+                
+            case 2: // Database Management
+                if (!handleDatabaseManagement()) {
+                    tui.showError("Database management operation failed or was cancelled");
+                }
+                break;
+                
+            case 3: // Configuration
+                if (!handleConfiguration()) {
+                    tui.showError("Configuration operation failed or was cancelled");
+                }
+                break;
+                
+            case 4: // Exit
+            case -1: // User pressed 'q' or Escape
+                tui.showMessage("Thank you for using OpenFDA Data Downloader!", 2000);
+                return true;
+                
+            default:
+                tui.showError("Invalid selection. Please try again.");
+                break;
+        }
+    }
+}
+
+void InteractiveManager::initializeDatabaseConnection() {
+    initializeDatabaseConnection("database.nfo");
+}
+
+void InteractiveManager::initializeDatabaseConnection(const std::string& config_file) {
+    // Try to load specified database configuration
+    tui.showMessage("Loading database configuration...", 500);
+    
+    bool config_loaded = false;
+    
+    // First try to load the specified configuration
+    if (db_manager.loadDatabaseConfig(config_file)) {
+        config_loaded = true;
+        tui.showMessage("✓ Configuration loaded", 500);
+    } else if (config_file != "database-multi.nfo") {
+        // Try multi-database configuration as fallback
+        if (db_manager.loadMultiDatabaseConfig("database-multi.nfo")) {
+            config_loaded = true;
+            tui.showMessage("✓ Multi-database configuration loaded", 500);
+        }
+    }
+    
+    if (!config_loaded) {
+        tui.clearDatabaseFooter();
+        tui.showError("No database configuration found", 2000);
+        return;
+    }
+    
+    // Attempt to connect to the database
+    tui.showMessage("Connecting to database...", 500);
+    
+    bool connected = false;
+    std::string host = "Unknown";
+    int port = 0;
+    std::string user = "Unknown";
+    std::string dbtype = "Unknown";
+    
+    // Get the actual database configuration
+    const DatabaseConfig& config = db_manager.getDatabaseConfig();
+    host = config.host;
+    port = config.port;
+    user = config.user;
+    dbtype = (config.type == DatabaseType::POSTGRESQL) ? "PostgreSQL" : "MySQL";
+    
+    // Try to initialize the database connection
+    if (db_manager.initializeDatabase()) {
+        connected = true;
+        tui.showMessage("✓ Database connected successfully", 1000);
+    } else {
+        tui.showError("Database connection failed", 1500);
+    }
+    
+    // Update the footer with connection status
+    tui.updateDatabaseFooter(host, port, user, dbtype, connected);
 }

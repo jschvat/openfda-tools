@@ -82,8 +82,8 @@ bool DatabaseManager::insertNDCRecord(const Json::Value& record) {
     
     query << ")";
     
-    if (mysql_query(mysql_conn, query.str().c_str())) {
-        std::string error_msg = mysql_error(mysql_conn);
+    if (!db_conn->executeQuery(query.str())) {
+        std::string error_msg = db_conn->getLastError();
         if (isDuplicateKeyError(error_msg)) {
             std::cout << "ℹ️  Record already exists (product_ndc: " 
                      << record.get("product_ndc", "").asString() << ")" << std::endl;
@@ -136,8 +136,8 @@ bool DatabaseManager::insertDrugsFDARecord(const Json::Value& record) {
     
     query << ")";
     
-    if (mysql_query(mysql_conn, query.str().c_str())) {
-        std::cerr << "Error inserting drugsfda record: " << mysql_error(mysql_conn) << std::endl;
+    if (!db_conn->executeQuery(query.str())) {
+        std::cerr << "Error inserting drugsfda record: " << db_conn->getLastError() << std::endl;
         return false;
     }
     
@@ -237,8 +237,8 @@ bool DatabaseManager::insertDrugLabelRecord(const Json::Value& record) {
     query << ", " << escapeString(getArrayAsString(record["carcinogenesis_and_mutagenesis_and_impairment_of_fertility"]));
     query << ")";
     
-    if (mysql_query(mysql_conn, query.str().c_str())) {
-        std::string error_msg = mysql_error(mysql_conn);
+    if (!db_conn->executeQuery(query.str())) {
+        std::string error_msg = db_conn->getLastError();
         if (isDuplicateKeyError(error_msg)) {
             std::string product_ndc = getFirstElement(record["openfda"], "product_ndc");
             std::cout << "ℹ️  Record already exists (product_ndc: " << product_ndc << ")" << std::endl;
@@ -422,8 +422,8 @@ bool DatabaseManager::insertFDANDCRecord(const Json::Value& record) {
     
     query << ")";
     
-    if (mysql_query(mysql_conn, query.str().c_str())) {
-        std::string error_msg = mysql_error(mysql_conn);
+    if (!db_conn->executeQuery(query.str())) {
+        std::string error_msg = db_conn->getLastError();
         if (isDuplicateKeyError(error_msg)) {
             std::cout << "ℹ️  Record already exists (product_ndc: " << formatted_ndc << ")" << std::endl;
             return true; // Consider duplicate as success to continue processing
