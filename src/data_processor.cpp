@@ -1,5 +1,6 @@
 #include "data_processor.h"
 #include "network.h"
+#include "tui.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -10,7 +11,8 @@
 #include <cstdio>
 
 DataProcessor::DataProcessor(DatabaseManager& db_manager, const std::string& log_dir) 
-    : db_manager(db_manager), error_logger(log_dir), temp_dir("./temp_openfda/") {
+    : db_manager(db_manager), error_logger(log_dir), temp_dir("./temp_openfda/"), 
+      tui_ptr(nullptr), interactive_mode(false) {
     // Create temp directory if it doesn't exist
     mkdir(temp_dir.c_str(), 0755);
     
@@ -43,7 +45,7 @@ std::string DataProcessor::buildUrl(const DataSourceConfig& config, int part) {
 }
 
 bool DataProcessor::extractZipFile(const std::string& zip_filename) {
-    std::cout << "⏳ Extracting ZIP file..." << std::endl;
+    outputMessage("⏳ Extracting ZIP file...");
     
     // Use unzip command to extract the file
     // Create safe filename for shell command (replace spaces with underscores)
@@ -52,18 +54,23 @@ bool DataProcessor::extractZipFile(const std::string& zip_filename) {
     
     std::string extract_command = "cd \"" + temp_dir + "\" && unzip -o \"" + safe_filename + "\"";
     
+    // Suppress output in interactive mode
+    if (interactive_mode && tui_ptr) {
+        extract_command += " > /dev/null 2>&1";  // Redirect output to null
+    }
+    
     int result = system(extract_command.c_str());
     if (result != 0) {
         std::cerr << "❌ Error: Failed to extract ZIP file " << zip_filename << std::endl;
         return false;
     }
     
-    std::cout << "✓ ZIP file extracted successfully" << std::endl;
+    outputMessage("✓ ZIP file extracted successfully");
     return true;
 }
 
 bool DataProcessor::processBulkJsonFile(const std::string& json_filename) {
-    std::cout << "📄 Processing JSON file: " << json_filename << std::endl;
+    outputMessage("📄 Processing JSON file: " + json_filename);
     
     // Set current source file for error tracking
     current_source_file = json_filename;
@@ -112,8 +119,13 @@ bool DataProcessor::processBulkJsonFile(const std::string& json_filename) {
     int processed_count = 0;
     int duplicate_count = 0;
     
-    std::cout << "✓ Found " << total_records << " records to process" << std::endl;
-    std::cout << "⏳ Inserting data into database..." << std::endl;
+    outputMessage("✓ Found " + std::to_string(total_records) + " records to process");
+    outputMessage("⏳ Inserting data into database...");
+    
+    // Initialize progress bar in interactive mode
+    if (interactive_mode && tui_ptr) {
+        tui_ptr->showProgressBar("Processing Records", 0, total_records);
+    }
     
     for (int i = 0; i < total_records; i++) {
         const Json::Value& record = results[i];
@@ -160,30 +172,47 @@ bool DataProcessor::processBulkJsonFile(const std::string& json_filename) {
         }
         
         if (i % 1000 == 0 && i > 0) {
-            int percent = (i * 100) / total_records;
-            std::cout << "📊 Progress: " << i << " / " << total_records << " (" 
-                     << percent << "%) - " << (processed_count - duplicate_count) << " new, " 
-                     << duplicate_count << " duplicates" << std::endl;
+            updateProgress("Processing Records", i, total_records);
+            outputMessage("📊 Progress: " + std::to_string(i) + " / " + std::to_string(total_records) + " - " + 
+                         std::to_string(processed_count - duplicate_count) + " new, " + 
+                         std::to_string(duplicate_count) + " duplicates");
+        } else if (interactive_mode && tui_ptr && i % 100 == 0) {
+            // More frequent updates for interactive mode progress bar
+            updateProgress("Processing Records", i, total_records);
         }
     }
     
-    std::cout << "✅ Successfully processed " << processed_count << " / " << total_records 
-              << " records (" << (processed_count - duplicate_count) << " new, " 
-              << duplicate_count << " duplicates)" << std::endl;
+    // Final progress update and hide progress bar
+    if (interactive_mode && tui_ptr) {
+        updateProgress("Processing Records", total_records, total_records);
+        tui_ptr->hideProgressBar();
+    }
+    
+    outputMessage("✅ Successfully processed " + std::to_string(processed_count) + " / " + 
+                 std::to_string(total_records) + " records (" + 
+                 std::to_string(processed_count - duplicate_count) + " new, " + 
+                 std::to_string(duplicate_count) + " duplicates)");
     return true;
 }
 
 bool DataProcessor::processBulkDownload(const DataSourceConfig& config) {
-    std::cout << "🚀 Starting " << config.name << " bulk data processing..." << std::endl;
+    outputMessage("🚀 Starting " + config.name + " bulk data processing...");
     
     NetworkManager network;
+    
+    // Set up output callback for network operations
+    if (interactive_mode && tui_ptr) {
+        network.setOutputCallback([this](const std::string& message) {
+            this->outputMessage(message);
+        });
+    }
     
     if (config.is_multi_file) {
         // Handle multi-file downloads (like Drug Label with 13 parts)
         int successful_parts = 0;
         
         for (int part = 1; part <= config.file_count; part++) {
-            std::cout << "\n📦 Processing " << config.name << " part " << part << " of " << config.file_count << std::endl;
+            outputMessage("📦 Processing " + config.name + " part " + std::to_string(part) + " of " + std::to_string(config.file_count));
             
             // Build URL and filename for this part
             std::string url = buildUrl(config, part);
@@ -218,13 +247,13 @@ bool DataProcessor::processBulkDownload(const DataSourceConfig& config) {
             }
             
             successful_parts++;
-            std::cout << "✅ Successfully processed " << config.name << " part " << part << std::endl;
+            outputMessage("✅ Successfully processed " + config.name + " part " + std::to_string(part));
         }
         
         if (successful_parts > 0) {
-            std::cout << "🎉 " << config.name << " bulk data processing completed! " 
-                     << "Successfully processed " << successful_parts << " out of " 
-                     << config.file_count << " parts." << std::endl;
+            outputMessage("🎉 " + config.name + " bulk data processing completed! " + 
+                         "Successfully processed " + std::to_string(successful_parts) + " out of " + 
+                         std::to_string(config.file_count) + " parts.");
             
             // Print error summary at the end of processing
             if (error_logger.getErrorCount() > 0 || error_logger.getDuplicateCount() > 0) {
@@ -270,7 +299,7 @@ bool DataProcessor::processBulkDownload(const DataSourceConfig& config) {
             return false;
         }
         
-        std::cout << "🎉 " << config.name << " bulk data processing completed successfully!" << std::endl;
+        outputMessage("🎉 " + config.name + " bulk data processing completed successfully!");
         
         // Print error summary at the end of processing
         if (error_logger.getErrorCount() > 0 || error_logger.getDuplicateCount() > 0) {
@@ -285,8 +314,15 @@ bool DataProcessor::processBulkDownload(const DataSourceConfig& config) {
 std::string DataProcessor::downloadNDCData(int limit, int skip) {
     NetworkManager network;
     
+    // Set up output callback for network operations
+    if (interactive_mode && tui_ptr) {
+        network.setOutputCallback([this](const std::string& message) {
+            this->outputMessage(message);
+        });
+    }
+    
     std::string url = "https://api.fda.gov/drug/ndc.json?limit=" + std::to_string(limit) + "&skip=" + std::to_string(skip);
-    std::cout << "⏳ Downloading from: " << url << std::endl;
+    outputMessage("⏳ Downloading from: " + url);
     
     return network.downloadData(url);
 }
@@ -440,5 +476,23 @@ std::string DataProcessor::getTableNameForDataSource(DataSource source) {
             
         default:
             return "unknown_table";
+    }
+}
+
+void DataProcessor::outputMessage(const std::string& message) {
+    if (interactive_mode && tui_ptr) {
+        tui_ptr->addFooterMessage(message);
+    } else {
+        std::cout << message << std::endl;
+    }
+}
+
+void DataProcessor::updateProgress(const std::string& title, int current, int total) {
+    if (interactive_mode && tui_ptr) {
+        tui_ptr->updateProgressBar(current, total);
+    } else {
+        int percent = (total > 0) ? (current * 100) / total : 0;
+        std::cout << "📊 Progress: " << current << " / " << total << " (" 
+                 << percent << "%)" << std::endl;
     }
 }

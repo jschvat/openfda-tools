@@ -148,7 +148,7 @@ bool DatabaseManager::loadMultiDatabaseConfig(const std::string& config_file) {
         if (file.is_open()) {
             found_path = path;
             if (!is_interactive_mode) {
-                std::cout << "✓ Found multi-database config: " << found_path << std::endl;
+                outputMessage("✓ Found multi-database config: " + found_path);
             }
             break;
         }
@@ -235,12 +235,12 @@ bool DatabaseManager::loadMultiDatabaseConfig(const std::string& config_file) {
     is_multi_config = true;
     
     if (!is_interactive_mode) {
-        std::cout << "✓ Loaded multi-database configuration:" << std::endl;
-        std::cout << "  Active: " << multi_config.active_database << std::endl;
-        std::cout << "  Type: " << (db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL") << std::endl;
-        std::cout << "  Host: " << db_config.host << ":" << db_config.port << std::endl;
-        std::cout << "  Database: " << db_config.database << std::endl;
-        std::cout << "  Schema: " << db_config.schema << std::endl;
+        outputMessage("✓ Loaded multi-database configuration:");
+        outputMessage("  Active: " + multi_config.active_database);
+        outputMessage("  Type: " + std::string(db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL"));
+        outputMessage("  Host: " + db_config.host + ":" + std::to_string(db_config.port));
+        outputMessage("  Database: " + db_config.database);
+        outputMessage("  Schema: " + db_config.schema);
     }
     
     return true;
@@ -267,11 +267,11 @@ bool DatabaseManager::switchDatabase(const std::string& database_name) {
     db_config = multi_config.selectDatabase(database_name);
     
     if (!is_interactive_mode) {
-        std::cout << "✓ Switched to " << database_name << " database" << std::endl;
+        outputMessage("✓ Switched to " + database_name + " database");
     }
-    std::cout << "  Type: " << (db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL") << std::endl;
-    std::cout << "  Host: " << db_config.host << ":" << db_config.port << std::endl;
-    std::cout << "  Database: " << db_config.database << std::endl;
+    outputMessage("  Type: " + std::string(db_config.type == DatabaseType::POSTGRESQL ? "PostgreSQL" : "MySQL"));
+    outputMessage("  Host: " + db_config.host + ":" + std::to_string(db_config.port));
+    outputMessage("  Database: " + db_config.database);
     
     return true;
 }
@@ -279,7 +279,7 @@ bool DatabaseManager::switchDatabase(const std::string& database_name) {
 bool DatabaseManager::initializeDatabase() {
     std::string db_type_name = (db_config.type == DatabaseType::POSTGRESQL) ? "PostgreSQL" : "MySQL";
     if (!is_interactive_mode) {
-        std::cout << "⏳ Initializing " << db_type_name << " connection..." << std::endl;
+        outputMessage("⏳ Initializing " + db_type_name + " connection...");
     }
     
     // Create appropriate database connection
@@ -308,7 +308,7 @@ bool DatabaseManager::initializeDatabase() {
     }
     
     if (!is_interactive_mode) {
-        std::cout << "✓ Connected to " << db_type_name << " server" << std::endl;
+        outputMessage("✓ Connected to " + db_type_name + " server");
     }
     return true;
 }

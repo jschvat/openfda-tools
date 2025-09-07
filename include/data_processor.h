@@ -6,6 +6,8 @@
 #include <json/json.h>
 #include <string>
 
+class AdvancedTUI;
+
 class DataProcessor {
 private:
     DatabaseManager& db_manager;
@@ -13,12 +15,16 @@ private:
     DataSource data_source;
     std::string temp_dir;
     std::string current_source_file;
+    AdvancedTUI* tui_ptr;
+    bool interactive_mode;
 
 public:
     DataProcessor(DatabaseManager& db_manager, const std::string& log_dir = "./logs/");
     ~DataProcessor() = default;
     
     void setDataSource(DataSource source) { data_source = source; }
+    void setTUI(AdvancedTUI* tui) { tui_ptr = tui; }
+    void setInteractiveMode(bool interactive) { interactive_mode = interactive; }
     
     // Error logging controls
     void setErrorLoggingEnabled(bool enabled) { error_logger.setLoggingEnabled(enabled); }
@@ -46,4 +52,6 @@ private:
     std::string buildUrl(const DataSourceConfig& config, int part);
     std::string extractPrimaryKey(const Json::Value& record);
     std::string getTableNameForDataSource(DataSource source);
+    void outputMessage(const std::string& message);
+    void updateProgress(const std::string& title, int current, int total);
 };

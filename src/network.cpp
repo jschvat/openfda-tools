@@ -17,6 +17,14 @@ void NetworkManager::globalCleanup() {
     curl_global_cleanup();
 }
 
+void NetworkManager::outputMessage(const std::string& message) {
+    if (output_callback) {
+        output_callback(message);
+    } else {
+        std::cout << message << std::endl;
+    }
+}
+
 std::string NetworkManager::downloadData(const std::string& url) {
     CURL* curl;
     CURLcode res;
@@ -56,7 +64,7 @@ std::string NetworkManager::downloadData(const std::string& url) {
 }
 
 bool NetworkManager::downloadBulkFile(const std::string& url, const std::string& filename) {
-    std::cout << "⏳ Downloading: " << url << std::endl;
+    outputMessage("⏳ Downloading: " + url);
     
     CURL* curl;
     CURLcode res;
@@ -82,7 +90,12 @@ bool NetworkManager::downloadBulkFile(const std::string& url, const std::string&
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &callback);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 0L); // No timeout for bulk downloads
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+    // Disable curl progress bars when using output callback (interactive mode)
+    if (output_callback) {
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);  // Disable progress
+    } else {
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);  // Enable progress for console
+    }
     
     res = curl_easy_perform(curl);
     
@@ -106,6 +119,6 @@ bool NetworkManager::downloadBulkFile(const std::string& url, const std::string&
     curl_easy_cleanup(curl);
     file.close();
     
-    std::cout << "✓ Successfully downloaded bulk file" << std::endl;
+    outputMessage("✓ Successfully downloaded bulk file");
     return true;
 }

@@ -128,22 +128,16 @@ bool InteractiveManager::handleDataDownload() {
     
     // Process data
     tui.updateStatus("Processing data - this may take a while...");
-    tui.showMessage("Data processing started. Check console for detailed progress.", 3000);
+    tui.addFooterMessage("Data processing started. Progress will be shown below.");
     
-    // Switch to console mode for data processing
-    tui.cleanup();
-    
+    // Keep TUI active and use interactive mode
     DataProcessor processor(db_manager, "./logs/");
     processor.setDataSource(dataSource);
+    processor.setTUI(&tui);
+    processor.setInteractiveMode(true);
     processor.processAllData();
     
-    // Reinitialize TUI
-    if (!tui.initialize()) {
-        std::cout << "Data processing completed. Returning to command line mode." << std::endl;
-        return true;
-    }
-    
-    tui.showMessage("Data processing completed successfully!", 3000);
+    tui.addFooterMessage("✅ Data processing completed successfully!");
     return true;
 }
 

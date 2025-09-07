@@ -4,7 +4,10 @@
 #include <fstream>
 #include <sstream>
 
-AdvancedTUI::AdvancedTUI() : main_window(nullptr), status_window(nullptr), footer_window(nullptr), initialized(false) {}
+AdvancedTUI::AdvancedTUI() : main_window(nullptr), status_window(nullptr), footer_window(nullptr), 
+                             initialized(false), footer_scroll_offset(0), max_footer_lines(5),
+                             progress_bar_visible(false), progress_current(0), 
+                             progress_total(0), progress_bar_y(0) {}
 
 AdvancedTUI::~AdvancedTUI() {
     cleanup();
@@ -690,6 +693,11 @@ void AdvancedTUI::redrawFooter() {
     wbkgd(footer_window, COLOR_PAIR(8)); // Blue background
     box(footer_window, 0, 0);
     
+    int footer_height, footer_width;
+    getmaxyx(footer_window, footer_height, footer_width);
+    
+    // Calculate available lines (excluding border)
+    max_footer_lines = footer_height - 2;
     int current_line = 1;
     
     // Display database status on top line if available
@@ -698,16 +706,69 @@ void AdvancedTUI::redrawFooter() {
         mvwprintw(footer_window, current_line, 2, "%s", database_status.c_str());
         if (has_colors()) wattroff(footer_window, COLOR_PAIR(8) | A_BOLD);
         current_line++;
+        max_footer_lines--;
     }
     
-    // Display footer messages
-    for (const auto& message : footer_messages) {
-        if (current_line >= 6) break; // Don't exceed footer window
+    // Calculate scroll parameters
+    int total_messages = footer_messages.size();
+    int visible_messages = std::min(max_footer_lines, total_messages);
+    
+    // Adjust scroll offset if needed
+    if (footer_scroll_offset + visible_messages > total_messages) {
+        footer_scroll_offset = std::max(0, total_messages - visible_messages);
+    }
+    if (footer_scroll_offset < 0) {
+        footer_scroll_offset = 0;
+    }
+    
+    // Display footer messages with scrolling
+    for (int i = 0; i < visible_messages && i < max_footer_lines; i++) {
+        int message_index = footer_scroll_offset + i;
+        if (message_index >= 0 && message_index < total_messages) {
+            const std::string& message = footer_messages[message_index];
+            
+            // Truncate message if too long
+            std::string display_message = message;
+            int max_width = footer_width - 4; // Account for border and padding
+            if (static_cast<int>(display_message.length()) > max_width) {
+                display_message = display_message.substr(0, max_width - 3) + "...";
+            }
+            
+            if (has_colors()) wattron(footer_window, COLOR_PAIR(8));
+            mvwprintw(footer_window, current_line + i, 2, "%s", display_message.c_str());
+            if (has_colors()) wattroff(footer_window, COLOR_PAIR(8));
+        }
+    }
+    
+    // Draw scrollbar if needed
+    if (total_messages > max_footer_lines) {
+        int scrollbar_x = footer_width - 2;
+        int scrollbar_height = max_footer_lines;
         
-        if (has_colors()) wattron(footer_window, COLOR_PAIR(8));
-        mvwprintw(footer_window, current_line, 2, "%s", message.c_str());
-        if (has_colors()) wattroff(footer_window, COLOR_PAIR(8));
-        current_line++;
+        // Draw scrollbar track
+        for (int y = current_line; y < current_line + scrollbar_height; y++) {
+            mvwaddch(footer_window, y, scrollbar_x, '|');
+        }
+        
+        // Draw scrollbar thumb
+        if (total_messages > 0) {
+            int thumb_size = std::max(1, (scrollbar_height * visible_messages) / total_messages);
+            int thumb_pos = current_line + (footer_scroll_offset * scrollbar_height) / total_messages;
+            
+            for (int y = thumb_pos; y < thumb_pos + thumb_size && y < current_line + scrollbar_height; y++) {
+                wattron(footer_window, A_REVERSE);
+                mvwaddch(footer_window, y, scrollbar_x, '|');
+                wattroff(footer_window, A_REVERSE);
+            }
+        }
+        
+        // Draw scroll indicators
+        if (footer_scroll_offset > 0) {
+            mvwaddch(footer_window, current_line, scrollbar_x, '^');
+        }
+        if (footer_scroll_offset + visible_messages < total_messages) {
+            mvwaddch(footer_window, current_line + scrollbar_height - 1, scrollbar_x, 'v');
+        }
     }
     
     wrefresh(footer_window);
@@ -733,10 +794,8 @@ void AdvancedTUI::addFooterMessage(const std::string& message) {
     
     footer_messages.push_back(message);
     
-    // Keep only the last 4 messages (footer has 5 usable lines - 1 for db status)
-    if (footer_messages.size() > 4) {
-        footer_messages.erase(footer_messages.begin());
-    }
+    // Auto-scroll to bottom when new messages are added
+    scrollFooterToBottom();
     
     redrawFooter();
 }
@@ -745,7 +804,36 @@ void AdvancedTUI::clearFooterMessages() {
     if (!initialized || !footer_window) return;
     
     footer_messages.clear();
+    footer_scroll_offset = 0;
     redrawFooter();
+}
+
+void AdvancedTUI::scrollFooterUp() {
+    if (!initialized || !footer_window) return;
+    
+    if (footer_scroll_offset > 0) {
+        footer_scroll_offset--;
+        redrawFooter();
+    }
+}
+
+void AdvancedTUI::scrollFooterDown() {
+    if (!initialized || !footer_window) return;
+    
+    int total_messages = footer_messages.size();
+    int max_scroll = std::max(0, total_messages - max_footer_lines);
+    
+    if (footer_scroll_offset < max_scroll) {
+        footer_scroll_offset++;
+        redrawFooter();
+    }
+}
+
+void AdvancedTUI::scrollFooterToBottom() {
+    if (!initialized || !footer_window) return;
+    
+    int total_messages = footer_messages.size();
+    footer_scroll_offset = std::max(0, total_messages - max_footer_lines);
 }
 
 int AdvancedTUI::showDatabaseConfigMenu() {
@@ -819,4 +907,91 @@ bool AdvancedTUI::switchDatabaseType() {
     
     showMessage(message, 2000);
     return true;
+}
+
+void AdvancedTUI::showProgressBar(const std::string& title, int current, int total) {
+    if (!initialized || !status_window) return;
+    
+    progress_bar_visible = true;
+    progress_title = title;
+    progress_current = current;
+    progress_total = total;
+    
+    // Position progress bar in the status window (middle of the 3 lines)
+    progress_bar_y = 1; // Middle line of status window
+    
+    drawProgressBar();
+    refreshAllWindows();
+}
+
+void AdvancedTUI::updateProgressBar(int current, int total) {
+    if (!initialized || !progress_bar_visible) return;
+    
+    progress_current = current;
+    progress_total = total;
+    
+    drawProgressBar();
+    refreshAllWindows();
+}
+
+void AdvancedTUI::hideProgressBar() {
+    if (!initialized || !progress_bar_visible) return;
+    
+    progress_bar_visible = false;
+    
+    // Clear the status window and redraw its border
+    wclear(status_window);
+    wbkgd(status_window, COLOR_PAIR(9)); // Restore green background
+    box(status_window, 0, 0);
+    
+    refreshAllWindows();
+}
+
+void AdvancedTUI::drawProgressBar() {
+    if (!initialized || !status_window || !progress_bar_visible) return;
+    
+    int status_height, status_width;
+    getmaxyx(status_window, status_height, status_width);
+    
+    // Progress bar dimensions (fit within status window)
+    int bar_width = std::min(status_width - 4, 60);
+    int bar_x = (status_width - bar_width) / 2;
+    
+    // Calculate percentage and filled chars
+    int percentage = (progress_total > 0) ? (progress_current * 100) / progress_total : 0;
+    int filled_chars = (progress_total > 0) ? (progress_current * (bar_width - 2)) / progress_total : 0;
+    
+    // Clear the status window but preserve background and border
+    wclear(status_window);
+    wbkgd(status_window, COLOR_PAIR(9)); // Green background
+    box(status_window, 0, 0);
+    
+    // Draw progress bar frame on the middle line
+    mvwaddch(status_window, progress_bar_y, bar_x, '[');
+    mvwaddch(status_window, progress_bar_y, bar_x + bar_width - 1, ']');
+    
+    // Fill progress bar
+    wattron(status_window, COLOR_PAIR(4)); // Use blue color for progress
+    for (int i = 0; i < filled_chars; i++) {
+        mvwaddch(status_window, progress_bar_y, bar_x + 1 + i, ACS_CKBOARD);
+    }
+    wattroff(status_window, COLOR_PAIR(4));
+    
+    // Draw empty part
+    for (int i = filled_chars; i < bar_width - 2; i++) {
+        mvwaddch(status_window, progress_bar_y, bar_x + 1 + i, ' ');
+    }
+    
+    // Draw percentage on line above progress bar if there's space
+    if (status_height >= 3) {
+        std::string stats = std::to_string(percentage) + "% (" + 
+                           std::to_string(progress_current) + "/" + 
+                           std::to_string(progress_total) + ")";
+        int stats_x = (status_width - stats.length()) / 2;
+        if (stats_x > 0 && stats.length() < static_cast<size_t>(status_width - 2)) {
+            mvwprintw(status_window, progress_bar_y - 1, stats_x, "%s", stats.c_str());
+        }
+    }
+    
+    wrefresh(status_window);
 }

@@ -15,6 +15,15 @@ private:
     bool initialized;
     std::vector<std::string> footer_messages;
     std::string database_status;
+    int footer_scroll_offset;
+    int max_footer_lines;
+    
+    // Progress bar state
+    bool progress_bar_visible;
+    std::string progress_title;
+    int progress_current;
+    int progress_total;
+    int progress_bar_y;
 
 public:
     AdvancedTUI();
@@ -56,6 +65,14 @@ public:
     void clearDatabaseFooter();
     void addFooterMessage(const std::string& message);
     void clearFooterMessages();
+    void scrollFooterUp();
+    void scrollFooterDown();
+    void scrollFooterToBottom();
+    
+    // Progress bar operations
+    void showProgressBar(const std::string& title, int current, int total);
+    void updateProgressBar(int current, int total);
+    void hideProgressBar();
     
     // Utility methods
     void centerText(int y, const std::string& text);
@@ -66,6 +83,7 @@ private:
     void initColors();
     void redrawFooter();
     void refreshAllWindows();
+    void drawProgressBar();
     std::string trimString(const std::string& str);
     int getMenuWidth(const std::vector<std::string>& options, const std::string& title, int min_width);
 };

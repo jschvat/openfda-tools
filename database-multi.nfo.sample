@@ -1,0 +1,34 @@
+# OpenFDA Multi-Database Configuration
+# This file supports both MySQL and PostgreSQL configurations
+# Set 'active_database' to choose which one to use
+
+# Active database selection: mysql or postgresql
+active_database: postgresql
+
+# MySQL Configuration
+[mysql]
+host: localhost
+port: 3306
+user: your_username
+password: your_password
+database: openfda
+schema: openfda
+
+# PostgreSQL Configuration  
+[postgresql]
+host: miniserver.local
+port: 5432
+user: jason
+password: 1Daniel0716!
+database: openfda
+schema: public
+
+# Alternative format (backward compatible):
+# If no sections are used, treats as single database config
+# type: postgresql
+# host: miniserver.local
+# port: 5432
+# user: jason
+# password: 1Daniel0716!
+# database: openfda
+# schema: public

@@ -161,81 +161,65 @@ bool DatabaseManager::insertDrugLabelRecord(const Json::Value& record) {
     
     std::stringstream query;
     query << "INSERT INTO drug_label_data (";
-    query << "set_id, effective_time, version, id_number, spl_product_data_elements, ";
-    query << "product_ndc, generic_name, brand_name, brand_name_base, brand_name_suffix, ";
-    query << "labeler_name, substance_name, active_ingredient, finished, packaging, ";
-    query << "listing_expiration_date, openfda_application_number, openfda_brand_name, ";
-    query << "openfda_generic_name, openfda_manufacturer_name, openfda_product_ndc, ";
-    query << "openfda_product_type, openfda_route, openfda_substance_name, openfda_rxcui, ";
-    query << "openfda_spl_id, openfda_spl_set_id, openfda_package_ndc, openfda_nui, ";
-    query << "openfda_pharm_class_moa, openfda_pharm_class_cs, openfda_pharm_class_pe, ";
-    query << "openfda_pharm_class_epc, openfda_unii, purpose, indications_and_usage, ";
-    query << "contraindications, description, clinical_pharmacology, warnings, precautions, ";
-    query << "adverse_reactions, drug_interactions, dosage_and_administration, overdosage, ";
-    query << "clinical_studies, how_supplied, storage_and_handling, information_for_patients, ";
-    query << "warnings_and_cautions, pregnancy, pediatric_use, geriatric_use, nursing_mothers, ";
-    query << "carcinogenesis_and_mutagenesis_and_impairment_of_fertility";
+    query << "set_id, id_value, effective_time, version, spl_medguide, spl_patient_package_insert, ";
+    query << "purpose, indications_and_usage, contraindications, warnings_and_cautions, ";
+    query << "adverse_reactions, drug_interactions, overdosage, dosage_and_administration, ";
+    query << "description, clinical_pharmacology, nonclinical_toxicology, clinical_studies, ";
+    query << "how_supplied, package_label_principal_display_panel, openfda_data";
     query << ") VALUES (";
     
     // Basic fields
     query << escapeString(record.get("set_id", "").asString()) << ", ";
+    query << escapeString(record.get("id", "").asString()) << ", ";
     query << formatDateOrNull(record.get("effective_time", "").asString()) << ", ";
     query << escapeString(record.get("version", "").asString()) << ", ";
-    query << escapeString(record.get("id", "").asString()) << ", ";
-    query << escapeString(getArrayAsString(record["spl_product_data_elements"])) << ", ";
     
-    // Product and OpenFDA fields
-    const Json::Value& openfda = record["openfda"];
-    query << escapeString(getFirstElement(openfda, "product_ndc")) << ", ";
-    query << escapeString(getArrayAsString(openfda["generic_name"])) << ", ";
-    query << escapeString(getArrayAsString(openfda["brand_name"])) << ", ";
-    query << escapeString(getArrayAsString(openfda["brand_name_base"])) << ", ";
-    query << escapeString(getArrayAsString(openfda["brand_name_suffix"])) << ", ";
-    query << escapeString(getArrayAsString(openfda["manufacturer_name"])) << ", ";
-    query << escapeString(getArrayAsString(openfda["substance_name"])) << ", ";
-    query << escapeString(getArrayAsString(record["active_ingredient"])) << ", ";
-    query << escapeString(getArrayAsString(record["finished"])) << ", ";
-    query << escapeString(getArrayAsString(record["packaging"])) << ", ";
-    query << formatDateOrNull(getArrayAsString(record["listing_expiration_date"])) << ", ";
+    // JSON fields - spl_medguide and spl_patient_package_insert
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
     
-    // More OpenFDA fields (using array of field names to reduce repetition)
-    std::vector<std::string> openfda_fields = {
-        "application_number", "brand_name", "generic_name", "manufacturer_name", 
-        "product_ndc", "product_type", "route", "substance_name", "rxcui",
-        "spl_id", "spl_set_id", "package_ndc", "nui", "pharm_class_moa",
-        "pharm_class_cs", "pharm_class_pe", "pharm_class_epc", "unii"
-    };
-    
-    for (const auto& field : openfda_fields) {
-        query << escapeString(getArrayAsString(openfda[field])) << ", ";
+    if (record.isMember("spl_medguide")) {
+        std::ostringstream stream;
+        writer->write(record["spl_medguide"], &stream);
+        query << escapeString(stream.str()) << ", ";
+    } else {
+        query << "NULL, ";
     }
     
-    // Label content fields
-    std::vector<std::string> label_fields = {
-        "purpose", "indications_and_usage", "contraindications", "description",
-        "clinical_pharmacology", "warnings", "precautions", "adverse_reactions",
-        "drug_interactions", "dosage_and_administration", "overdosage",
-        "clinical_studies", "how_supplied", "storage_and_handling",
-        "information_for_patients", "warnings_and_cautions", "pregnancy",
-        "pediatric_use", "geriatric_use", "nursing_mothers"
+    if (record.isMember("spl_patient_package_insert")) {
+        std::ostringstream stream;
+        writer->write(record["spl_patient_package_insert"], &stream);
+        query << escapeString(stream.str()) << ", ";
+    } else {
+        query << "NULL, ";
+    }
+    
+    // Text label content fields matching current schema
+    std::vector<std::string> text_fields = {
+        "purpose", "indications_and_usage", "contraindications", "warnings_and_cautions",
+        "adverse_reactions", "drug_interactions", "overdosage", "dosage_and_administration",
+        "description", "clinical_pharmacology", "nonclinical_toxicology", "clinical_studies",
+        "how_supplied", "package_label_principal_display_panel"
     };
     
-    for (size_t i = 0; i < label_fields.size(); i++) {
-        std::string field_content = getArrayAsString(record[label_fields[i]]);
-        
-        // Debug: Log field sizes for problematic fields
-        if (field_content.length() > 50000) {  // Only log very large fields
-            std::cout << "⚠️  Large field detected: " << label_fields[i] 
-                      << " (" << field_content.length() << " bytes)" << std::endl;
-        }
-        
+    for (size_t i = 0; i < text_fields.size(); i++) {
+        std::string field_content = getArrayAsString(record[text_fields[i]]);
         query << escapeString(field_content);
-        if (i < label_fields.size() - 1) query << ", ";
+        if (i < text_fields.size() - 1) query << ", ";
     }
     
-    // Last field (no comma)
-    query << ", " << escapeString(getArrayAsString(record["carcinogenesis_and_mutagenesis_and_impairment_of_fertility"]));
-    query << ")";
+    // OpenFDA data as JSON
+    query << ", ";
+    if (record.isMember("openfda")) {
+        std::ostringstream stream;
+        writer->write(record["openfda"], &stream);
+        query << escapeString(stream.str());
+    } else {
+        query << "NULL";
+    }
+    
+    query << ")"; 
     
     if (!db_conn->executeQuery(query.str())) {
         std::string error_msg = db_conn->getLastError();

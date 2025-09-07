@@ -2,10 +2,13 @@
 
 #include <string>
 #include <fstream>
+#include <functional>
 #include <curl/curl.h>
 
 class NetworkManager {
 private:
+    std::function<void(const std::string&)> output_callback;
+    
     struct WriteCallback {
         std::string data;
         static size_t WriteData(void* contents, size_t size, size_t nmemb, WriteCallback* callback) {
@@ -32,7 +35,13 @@ public:
     std::string downloadData(const std::string& url);
     bool downloadBulkFile(const std::string& url, const std::string& filename);
     
+    // Output callback for messages
+    void setOutputCallback(std::function<void(const std::string&)> callback) { output_callback = callback; }
+    
     // Initialize/cleanup
     static bool globalInit();
     static void globalCleanup();
+
+private:
+    void outputMessage(const std::string& message);
 };
