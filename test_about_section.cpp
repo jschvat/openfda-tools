@@ -13,7 +13,7 @@ int main() {
     // Create a simple test content
     std::vector<std::string> testContent = {
         "Test About Section",
-        "═══════════════════",
+        "==================",
         "",
         "This is a test of the scrollable text functionality.",
         "Use the arrow keys to scroll up and down.",
@@ -44,7 +44,7 @@ int main() {
         "Line 30 - This is the last line"
     };
     
-    tui.showScrollableText(testContent, "🧪 Test Scrollable Text Window");
+    tui.showScrollableText(testContent, "Test Scrollable Text Window");
     
     tui.cleanup();
     return 0;
