@@ -1003,15 +1003,11 @@ void AdvancedTUI::drawProgressBar() {
 void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, const std::string& title) {
     if (!initialized) return;
     
-    // Calculate window dimensions (80% of screen size)
-    int win_height = (height * 4) / 5; // Use integer math to avoid truncation
-    int win_width = (width * 9) / 10;
-    int start_y = (height - win_height) / 2;
-    int start_x = (width - win_width) / 2;
-    
-    // Ensure minimum size
-    if (win_height < 10) win_height = 10;
-    if (win_width < 40) win_width = 40;
+    // Make window full-screen, stopping at status bar (height - 10)
+    int win_height = height - 10; // Full height minus status and footer areas
+    int win_width = width;
+    int start_y = 0;
+    int start_x = 0;
     
     // Create the scrollable window
     WINDOW* scroll_win = newwin(win_height, win_width, start_y, start_x);
@@ -1024,8 +1020,8 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
     // Set blue background with white text
     wbkgd(scroll_win, COLOR_PAIR(1));  // Blue background, white text
     
-    int content_height = win_height - 4; // Account for borders and title
-    int content_width = win_width - 4;
+    int content_height = win_height - 4; // Account for borders and title  
+    int content_width = win_width - 6;   // Account for borders and scrollbar
     int scroll_pos = 0;
     int max_scroll = 0;
     
@@ -1051,21 +1047,38 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
             const std::string& line = lines[i + scroll_pos];
             std::string display_line = line;
             
-            // Truncate line if too long
-            if (display_line.length() > static_cast<size_t>(content_width - 2)) {
-                display_line = display_line.substr(0, content_width - 5) + "...";
+            // Truncate line if too long (leave space for scrollbar)
+            if (display_line.length() > static_cast<size_t>(content_width)) {
+                display_line = display_line.substr(0, content_width - 3) + "...";
             }
             
             mvwprintw(scroll_win, i + 3, 2, "%s", display_line.c_str());
         }
         
-        // Draw scroll indicator
+        // Draw scrollbar on the right side
         if (max_scroll > 0) {
-            mvwprintw(scroll_win, win_height - 2, win_width - 25, 
+            int scrollbar_height = content_height - 2; // Height available for scrollbar
+            int scrollbar_pos = (scroll_pos * scrollbar_height) / max_scroll;
+            int scrollbar_x = win_width - 2;
+            
+            // Draw scrollbar track
+            for (int i = 0; i < scrollbar_height; i++) {
+                mvwaddch(scroll_win, i + 3, scrollbar_x, '|');
+            }
+            
+            // Draw scrollbar thumb (current position indicator)
+            if (scrollbar_pos < scrollbar_height) {
+                mvwaddch(scroll_win, scrollbar_pos + 3, scrollbar_x, '#');
+            }
+        }
+        
+        // Draw scroll indicator and navigation help
+        if (max_scroll > 0) {
+            mvwprintw(scroll_win, win_height - 2, 2, 
                      "Line %d-%d of %zu", scroll_pos + 1, 
                      std::min(scroll_pos + content_height, (int)lines.size()), lines.size());
             mvwprintw(scroll_win, win_height - 1, 2, 
-                     "↑↓/PgUp/PgDn/Mouse: Scroll | Home/End | ESC/Q/Space: Exit");
+                     "Up/Down/PgUp/PgDn/Mouse: Scroll | Home/End | ESC/Q/Space: Exit");
         } else {
             mvwprintw(scroll_win, win_height - 1, 2, "ESC/Q/Space: Exit");
         }
