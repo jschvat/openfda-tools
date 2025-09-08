@@ -1055,21 +1055,33 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
             mvwprintw(scroll_win, i + 3, 2, "%s", display_line.c_str());
         }
         
-        // Draw scrollbar on the right side
+        // Draw elegant scrollbar on the right side
         if (max_scroll > 0) {
             int scrollbar_height = content_height - 2; // Height available for scrollbar
-            int scrollbar_pos = (scroll_pos * scrollbar_height) / max_scroll;
             int scrollbar_x = win_width - 2;
+            int scrollbar_start_y = 3;
             
-            // Draw scrollbar track
+            // Calculate thumb position and size
+            int thumb_size = std::max(1, (scrollbar_height * content_height) / static_cast<int>(lines.size()));
+            int thumb_pos = (scroll_pos * (scrollbar_height - thumb_size)) / max_scroll;
+            
+            // Draw scrollbar track with ACS characters
+            mvwaddch(scroll_win, scrollbar_start_y - 1, scrollbar_x, ACS_UARROW); // Up arrow
             for (int i = 0; i < scrollbar_height; i++) {
-                mvwaddch(scroll_win, i + 3, scrollbar_x, '|');
+                int track_y = scrollbar_start_y + i;
+                bool is_thumb = (i >= thumb_pos && i < thumb_pos + thumb_size);
+                
+                if (is_thumb) {
+                    // Draw thumb with solid block characters
+                    wattron(scroll_win, A_REVERSE);
+                    mvwaddch(scroll_win, track_y, scrollbar_x, ACS_CKBOARD);
+                    wattroff(scroll_win, A_REVERSE);
+                } else {
+                    // Draw track with dots
+                    mvwaddch(scroll_win, track_y, scrollbar_x, ACS_VLINE);
+                }
             }
-            
-            // Draw scrollbar thumb (current position indicator)
-            if (scrollbar_pos < scrollbar_height) {
-                mvwaddch(scroll_win, scrollbar_pos + 3, scrollbar_x, '#');
-            }
+            mvwaddch(scroll_win, scrollbar_start_y + scrollbar_height, scrollbar_x, ACS_DARROW); // Down arrow
         }
         
         // Draw scroll indicator and navigation help
@@ -1110,13 +1122,128 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
                 break;
             case KEY_MOUSE: {
                 MEVENT event;
-                if (getmouse(&event) == OK) {
+                if (getmouse(&event) == OK && max_scroll > 0) {
+                    // Convert absolute coordinates to window-relative coordinates
+                    int win_x, win_y;
+                    getbegyx(scroll_win, win_y, win_x);
+                    int rel_x = event.x - win_x;
+                    int rel_y = event.y - win_y;
+                    
+                    int scrollbar_x = win_width - 2;
+                    int scrollbar_start_y = 3;
+                    int scrollbar_height = content_height - 2;
+                    int scrollbar_end_y = scrollbar_start_y + scrollbar_height;
+                    
                     if (event.bstate & BUTTON4_PRESSED) {
                         // Mouse wheel up
                         if (scroll_pos > 0) scroll_pos--;
                     } else if (event.bstate & BUTTON5_PRESSED) {
                         // Mouse wheel down
                         if (scroll_pos < max_scroll) scroll_pos++;
+                    } else if (event.bstate & BUTTON1_PRESSED) {
+                        // Allow clicks on scrollbar with 1-column tolerance
+                        if (rel_x >= scrollbar_x - 1 && rel_x <= scrollbar_x + 1) {
+                        // Click on scrollbar - check where
+                        if (rel_y == scrollbar_start_y - 1) {
+                            // Click on up arrow
+                            if (scroll_pos > 0) scroll_pos--;
+                        } else if (rel_y == scrollbar_end_y) {
+                            // Click on down arrow
+                            if (scroll_pos < max_scroll) scroll_pos++;
+                        } else if (rel_y >= scrollbar_start_y && rel_y < scrollbar_end_y) {
+                            // Click is on scrollbar track - check if on thumb
+                            int thumb_size = std::max(1, (scrollbar_height * content_height) / static_cast<int>(lines.size()));
+                            int thumb_pos = (scroll_pos * (scrollbar_height - thumb_size)) / max_scroll;
+                            int thumb_start = scrollbar_start_y + thumb_pos;
+                            int thumb_end = thumb_start + thumb_size;
+                            
+                            if (rel_y >= thumb_start && rel_y < thumb_end) {
+                            // Mouse is on thumb - enter drag mode
+                            bool dragging = true;
+                            int drag_offset = rel_y - thumb_start;
+                            
+                            while (dragging) {
+                                // Redraw with drag state
+                                werase(scroll_win);
+                                box(scroll_win, 0, 0);
+                                
+                                // Redraw title
+                                if (title_x > 0) {
+                                    wattron(scroll_win, A_BOLD);
+                                    mvwprintw(scroll_win, 1, title_x, "%s", title.c_str());
+                                    wattroff(scroll_win, A_BOLD);
+                                }
+                                
+                                // Redraw content
+                                for (int i = 0; i < content_height && (i + scroll_pos) < static_cast<int>(lines.size()); i++) {
+                                    const std::string& line = lines[i + scroll_pos];
+                                    std::string display_line = line;
+                                    if (display_line.length() > static_cast<size_t>(content_width)) {
+                                        display_line = display_line.substr(0, content_width - 3) + "...";
+                                    }
+                                    mvwprintw(scroll_win, i + 3, 2, "%s", display_line.c_str());
+                                }
+                                
+                                // Redraw scrollbar with drag highlight
+                                thumb_size = std::max(1, (scrollbar_height * content_height) / static_cast<int>(lines.size()));
+                                thumb_pos = (scroll_pos * (scrollbar_height - thumb_size)) / max_scroll;
+                                
+                                mvwaddch(scroll_win, scrollbar_start_y - 1, scrollbar_x, ACS_UARROW);
+                                for (int i = 0; i < scrollbar_height; i++) {
+                                    int track_y = scrollbar_start_y + i;
+                                    bool is_thumb = (i >= thumb_pos && i < thumb_pos + thumb_size);
+                                    
+                                    if (is_thumb) {
+                                        wattron(scroll_win, A_REVERSE | A_BOLD);
+                                        mvwaddch(scroll_win, track_y, scrollbar_x, ACS_BLOCK);
+                                        wattroff(scroll_win, A_REVERSE | A_BOLD);
+                                    } else {
+                                        mvwaddch(scroll_win, track_y, scrollbar_x, ACS_VLINE);
+                                    }
+                                }
+                                mvwaddch(scroll_win, scrollbar_end_y, scrollbar_x, ACS_DARROW);
+                                
+                                // Redraw indicators
+                                mvwprintw(scroll_win, win_height - 2, 2, 
+                                         "Line %d-%d of %zu", scroll_pos + 1, 
+                                         std::min(scroll_pos + content_height, (int)lines.size()), lines.size());
+                                mvwprintw(scroll_win, win_height - 1, 2, 
+                                         "DRAGGING - Release to set position | ESC: Cancel");
+                                
+                                wrefresh(scroll_win);
+                                
+                                // Get next mouse event
+                                int drag_ch = wgetch(scroll_win);
+                                if (drag_ch == KEY_MOUSE) {
+                                    MEVENT drag_event;
+                                    if (getmouse(&drag_event) == OK) {
+                                        if (drag_event.bstate & BUTTON1_RELEASED) {
+                                            // End drag
+                                            dragging = false;
+                                        } else if (drag_event.bstate & REPORT_MOUSE_POSITION || 
+                                                  drag_event.bstate & BUTTON1_PRESSED) {
+                                            // Update position during drag - convert coordinates
+                                            int drag_win_x, drag_win_y;
+                                            getbegyx(scroll_win, drag_win_y, drag_win_x);
+                                            int drag_rel_y = drag_event.y - drag_win_y;
+                                            int new_thumb_y = drag_rel_y - drag_offset - scrollbar_start_y;
+                                            new_thumb_y = std::max(0, std::min(new_thumb_y, scrollbar_height - thumb_size));
+                                            int new_scroll = (new_thumb_y * max_scroll) / (scrollbar_height - thumb_size);
+                                            scroll_pos = std::max(0, std::min(new_scroll, max_scroll));
+                                        }
+                                    }
+                                } else if (drag_ch == 27) { // ESC cancels drag
+                                    dragging = false;
+                                }
+                            }
+                            } else {
+                                // Click on track (not on thumb) - jump to position
+                                int clicked_pos = rel_y - scrollbar_start_y;
+                                int new_scroll_pos = (clicked_pos * max_scroll) / scrollbar_height;
+                                scroll_pos = std::max(0, std::min(new_scroll_pos, max_scroll));
+                            }
+                        }
+                        }
                     }
                 }
                 break;
