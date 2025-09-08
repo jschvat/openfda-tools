@@ -24,6 +24,9 @@ bool AdvancedTUI::initialize() {
     keypad(stdscr, TRUE);
     curs_set(0);
     
+    // Enable mouse support globally
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
+    
     // Get screen dimensions
     getmaxyx(stdscr, height, width);
     
@@ -1001,14 +1004,22 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
     if (!initialized) return;
     
     // Calculate window dimensions (80% of screen size)
-    int win_height = height * 0.8;
-    int win_width = width * 0.9;
+    int win_height = (height * 4) / 5; // Use integer math to avoid truncation
+    int win_width = (width * 9) / 10;
     int start_y = (height - win_height) / 2;
     int start_x = (width - win_width) / 2;
+    
+    // Ensure minimum size
+    if (win_height < 10) win_height = 10;
+    if (win_width < 40) win_width = 40;
     
     // Create the scrollable window
     WINDOW* scroll_win = newwin(win_height, win_width, start_y, start_x);
     if (!scroll_win) return;
+    
+    // Enable keypad and mouse for this window
+    keypad(scroll_win, TRUE);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
     
     // Set blue background with white text
     wbkgd(scroll_win, COLOR_PAIR(1));  // Blue background, white text
@@ -1016,7 +1027,11 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
     int content_height = win_height - 4; // Account for borders and title
     int content_width = win_width - 4;
     int scroll_pos = 0;
-    int max_scroll = (lines.size() > content_height) ? lines.size() - content_height : 0;
+    int max_scroll = 0;
+    
+    if (lines.size() > static_cast<size_t>(content_height)) {
+        max_scroll = static_cast<int>(lines.size()) - content_height;
+    }
     
     while (true) {
         // Clear and draw border
@@ -1032,12 +1047,12 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
         }
         
         // Draw content lines
-        for (int i = 0; i < content_height && (i + scroll_pos) < lines.size(); i++) {
+        for (int i = 0; i < content_height && (i + scroll_pos) < static_cast<int>(lines.size()); i++) {
             const std::string& line = lines[i + scroll_pos];
             std::string display_line = line;
             
             // Truncate line if too long
-            if (display_line.length() > content_width - 2) {
+            if (display_line.length() > static_cast<size_t>(content_width - 2)) {
                 display_line = display_line.substr(0, content_width - 5) + "...";
             }
             
@@ -1046,12 +1061,13 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
         
         // Draw scroll indicator
         if (max_scroll > 0) {
-            mvwprintw(scroll_win, win_height - 2, win_width - 20, 
-                     "Line %d/%zu", scroll_pos + 1, lines.size());
+            mvwprintw(scroll_win, win_height - 2, win_width - 25, 
+                     "Line %d-%d of %zu", scroll_pos + 1, 
+                     std::min(scroll_pos + content_height, (int)lines.size()), lines.size());
             mvwprintw(scroll_win, win_height - 1, 2, 
-                     "↑↓/PgUp/PgDn: Scroll | ESC/Q: Exit");
+                     "↑↓/PgUp/PgDn/Mouse: Scroll | Home/End | ESC/Q/Space: Exit");
         } else {
-            mvwprintw(scroll_win, win_height - 1, 2, "ESC/Q: Exit");
+            mvwprintw(scroll_win, win_height - 1, 2, "ESC/Q/Space: Exit");
         }
         
         wrefresh(scroll_win);
@@ -1073,9 +1089,30 @@ void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, cons
                 scroll_pos += content_height;
                 if (scroll_pos > max_scroll) scroll_pos = max_scroll;
                 break;
+            case KEY_HOME: // Home - go to top
+                scroll_pos = 0;
+                break;
+            case KEY_END: // End - go to bottom
+                scroll_pos = max_scroll;
+                break;
+            case KEY_MOUSE: {
+                MEVENT event;
+                if (getmouse(&event) == OK) {
+                    if (event.bstate & BUTTON4_PRESSED) {
+                        // Mouse wheel up
+                        if (scroll_pos > 0) scroll_pos--;
+                    } else if (event.bstate & BUTTON5_PRESSED) {
+                        // Mouse wheel down
+                        if (scroll_pos < max_scroll) scroll_pos++;
+                    }
+                }
+                break;
+            }
             case 27: // ESC
             case 'q':
             case 'Q':
+            case 10: // Enter (alternative exit)
+            case ' ': // Space (alternative exit)
                 goto exit_scroll;
             default:
                 break;
