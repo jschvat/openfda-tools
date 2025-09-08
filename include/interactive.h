@@ -22,6 +22,7 @@ private:
     bool handleDataDownload();
     bool handleDatabaseManagement();
     bool handleConfiguration();
+    void handleAbout();
     
     // Data source selection
     DataSource selectDataSource();

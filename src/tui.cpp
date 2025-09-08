@@ -203,6 +203,7 @@ int AdvancedTUI::showMainMenu() {
         "Download FDA Data - Select data source and process pharmaceutical data",
         "Database Management - Clear tables, manage connections, view status", 
         "Configuration - Edit database settings and save configurations",
+        "About - View data sources, table information, and system details",
         "Exit - Quit the application"
     };
     
@@ -994,4 +995,94 @@ void AdvancedTUI::drawProgressBar() {
     }
     
     wrefresh(status_window);
+}
+
+void AdvancedTUI::showScrollableText(const std::vector<std::string>& lines, const std::string& title) {
+    if (!initialized) return;
+    
+    // Calculate window dimensions (80% of screen size)
+    int win_height = height * 0.8;
+    int win_width = width * 0.9;
+    int start_y = (height - win_height) / 2;
+    int start_x = (width - win_width) / 2;
+    
+    // Create the scrollable window
+    WINDOW* scroll_win = newwin(win_height, win_width, start_y, start_x);
+    if (!scroll_win) return;
+    
+    // Set blue background with white text
+    wbkgd(scroll_win, COLOR_PAIR(1));  // Blue background, white text
+    
+    int content_height = win_height - 4; // Account for borders and title
+    int content_width = win_width - 4;
+    int scroll_pos = 0;
+    int max_scroll = (lines.size() > content_height) ? lines.size() - content_height : 0;
+    
+    while (true) {
+        // Clear and draw border
+        werase(scroll_win);
+        box(scroll_win, 0, 0);
+        
+        // Draw title
+        int title_x = (win_width - title.length()) / 2;
+        if (title_x > 0) {
+            wattron(scroll_win, A_BOLD);
+            mvwprintw(scroll_win, 1, title_x, "%s", title.c_str());
+            wattroff(scroll_win, A_BOLD);
+        }
+        
+        // Draw content lines
+        for (int i = 0; i < content_height && (i + scroll_pos) < lines.size(); i++) {
+            const std::string& line = lines[i + scroll_pos];
+            std::string display_line = line;
+            
+            // Truncate line if too long
+            if (display_line.length() > content_width - 2) {
+                display_line = display_line.substr(0, content_width - 5) + "...";
+            }
+            
+            mvwprintw(scroll_win, i + 3, 2, "%s", display_line.c_str());
+        }
+        
+        // Draw scroll indicator
+        if (max_scroll > 0) {
+            mvwprintw(scroll_win, win_height - 2, win_width - 20, 
+                     "Line %d/%zu", scroll_pos + 1, lines.size());
+            mvwprintw(scroll_win, win_height - 1, 2, 
+                     "↑↓/PgUp/PgDn: Scroll | ESC/Q: Exit");
+        } else {
+            mvwprintw(scroll_win, win_height - 1, 2, "ESC/Q: Exit");
+        }
+        
+        wrefresh(scroll_win);
+        
+        // Handle input
+        int ch = wgetch(scroll_win);
+        switch (ch) {
+            case KEY_UP:
+                if (scroll_pos > 0) scroll_pos--;
+                break;
+            case KEY_DOWN:
+                if (scroll_pos < max_scroll) scroll_pos++;
+                break;
+            case KEY_PPAGE: // Page Up
+                scroll_pos -= content_height;
+                if (scroll_pos < 0) scroll_pos = 0;
+                break;
+            case KEY_NPAGE: // Page Down
+                scroll_pos += content_height;
+                if (scroll_pos > max_scroll) scroll_pos = max_scroll;
+                break;
+            case 27: // ESC
+            case 'q':
+            case 'Q':
+                goto exit_scroll;
+            default:
+                break;
+        }
+    }
+    
+exit_scroll:
+    delwin(scroll_win);
+    refreshAllWindows();
 }

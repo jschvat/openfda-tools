@@ -47,7 +47,11 @@ bool InteractiveManager::runInteractiveMode() {
                 }
                 break;
                 
-            case 4: // Exit
+            case 4: // About
+                handleAbout();
+                break;
+                
+            case 5: // Exit
             case -1: // User pressed 'q' or Escape
                 tui.showMessage("Thank you for using OpenFDA Data Downloader!", 2000);
                 return true;
@@ -257,13 +261,15 @@ bool InteractiveManager::handleClearDatabase() {
         "Clear DrugsFDA Table - Remove DrugsFDA records", 
         "Clear Drug Label Table - Remove label records",
         "Clear FDA NDC Table - Remove FDA NDC records",
+        "Clear Drug Images Table - Remove RxIMAGE data",
+        "Clear NDC Imprint Table - Remove DailyMed/RxNorm data",
         "Clear All Tables - Remove all data",
         "Cancel - Return without clearing"
     };
     
     int choice = tui.showMenu(clearOptions, "Select Tables to Clear", 60);
     
-    if (choice == -1 || choice == 6) {
+    if (choice == -1 || choice == 8) {
         return true; // User cancelled
     }
     
@@ -288,10 +294,18 @@ bool InteractiveManager::handleClearDatabase() {
             success = db_manager.clearTable("fda_ndc_data");
             break;
         case 5:
+            success = db_manager.clearTable("drug_images");
+            break;
+        case 6:
+            success = db_manager.clearTable("ndc_imprint_data");
+            break;
+        case 7:
             success = db_manager.clearTable("ndc_data") &&
                      db_manager.clearTable("drugsfda_data") &&
                      db_manager.clearTable("drug_label_data") &&
-                     db_manager.clearTable("fda_ndc_data");
+                     db_manager.clearTable("fda_ndc_data") &&
+                     db_manager.clearTable("drug_images") &&
+                     db_manager.clearTable("ndc_imprint_data");
             break;
     }
     
@@ -312,7 +326,7 @@ bool InteractiveManager::handleDatabaseStatus() {
     
     // Check table status
     std::vector<std::pair<std::string, bool>> tables;
-    std::vector<std::string> table_names = {"ndc_data", "drugsfda_data", "drug_label_data", "fda_ndc_data"};
+    std::vector<std::string> table_names = {"ndc_data", "drugsfda_data", "drug_label_data", "fda_ndc_data", "drug_images", "ndc_imprint_data"};
     
     if (connection_ok) {
         for (const auto& table_name : table_names) {
@@ -521,7 +535,11 @@ bool InteractiveManager::runInteractiveMode(const std::string& config_file) {
                 }
                 break;
                 
-            case 4: // Exit
+            case 4: // About
+                handleAbout();
+                break;
+                
+            case 5: // Exit
             case -1: // User pressed 'q' or Escape
                 tui.showMessage("Thank you for using OpenFDA Data Downloader!", 2000);
                 return true;
@@ -587,4 +605,175 @@ void InteractiveManager::initializeDatabaseConnection(const std::string& config_
     
     // Update the footer with connection status
     tui.updateDatabaseFooter(host, port, user, dbtype, connected);
+}
+
+void InteractiveManager::handleAbout() {
+    std::vector<std::string> aboutContent = {
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "                            OpenFDA Data Downloader",
+        "                    Comprehensive Pharmaceutical Data Processing Tool",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "",
+        "📊 DATA SOURCES AND ENDPOINTS",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│                              FDA OPENFDA APIs                               │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "",
+        "🔹 NDC API (Real-time)",
+        "   URL: https://api.fda.gov/drug/ndc.json",
+        "   Table: ndc_data",
+        "   Description: National Drug Code directory with real-time API access",
+        "   Data: Product NDCs, labelers, package info, active ingredients",
+        "",
+        "🔹 NDC Bulk Download",
+        "   URL: https://download.open.fda.gov/drug/ndc/drug-ndc-0001-of-0001.json.zip",
+        "   Table: ndc_data", 
+        "   Description: Complete NDC dataset in single download",
+        "   Data: All NDC records, faster processing than API",
+        "",
+        "🔹 DrugsFDA Bulk",
+        "   URL: https://download.open.fda.gov/drug/drugsfda/drug-drugsfda-0001-of-0001.json.zip",
+        "   Table: drugsfda_data",
+        "   Description: FDA-approved drug products and applications",
+        "   Data: Application numbers, approval dates, sponsors, product names",
+        "",
+        "🔹 Drug Label Bulk (13 Parts)",
+        "   URL: https://download.open.fda.gov/drug/label/drug-label-XXXX-of-0013.json.zip",
+        "   Table: drug_label_data",
+        "   Description: Structured Product Labeling (SPL) data",
+        "   Data: Comprehensive labeling info, warnings, dosage, administration",
+        "",
+        "🔹 FDA NDC Bulk (Normalized)",
+        "   URL: https://download.open.fda.gov/drug/ndc/drug-ndc-0001-of-0001.json.zip",
+        "   Table: fda_ndc_data",
+        "   Description: FDA NDC data with normalized formatting",
+        "   Data: Standardized NDC format, enhanced for database queries",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│                         NLM (National Library of Medicine)                  │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "",
+        "🔹 RxIMAGE Drug Images",
+        "   Source: NLM Data Discovery Portal (https://datadiscovery.nlm.nih.gov/)",
+        "   Table: drug_images",
+        "   Description: Visual identification of prescription drugs",
+        "   Data: Drug images, NDC codes, physical characteristics, colors, shapes",
+        "   Note: API discontinued - manual download required",
+        "",
+        "🔹 DailyMed NDC Imprint API",
+        "   URL: https://dailymed.nlm.nih.gov/dailymed/services/v1/ndc/{ndc}/imprintdata.json",
+        "   Table: ndc_imprint_data",
+        "   Description: Physical pill/tablet characteristics",
+        "   Data: Imprint text, colors, shapes, coating, scoring, symbols",
+        "",
+        "🔹 RxNorm NDC Properties API",
+        "   URL: https://rxnav.nlm.nih.gov/REST/ndc/{ndc}/allProperties.json",
+        "   Table: ndc_imprint_data",
+        "   Description: Enhanced NDC properties and relationships",
+        "   Data: NDC properties, labeler info, enhanced metadata",
+        "",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "📋 DATABASE TABLES AND SCHEMAS",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│ ndc_data - Primary NDC Directory                                            │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "• Primary Key: product_ndc (standardized format)",
+        "• Fields: labeler_name, product_name, product_type, route, active_ingredients",
+        "• JSON Storage: Raw API response data",
+        "• Source: NDC API & NDC Bulk downloads",
+        "• Records: ~150,000+ pharmaceutical products",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│ drugsfda_data - FDA Approved Drugs                                          │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "• Primary Key: application_number",
+        "• Fields: sponsor_name, application_type, application_number, products",
+        "• JSON Storage: Complete application details",
+        "• Source: DrugsFDA Bulk download",
+        "• Records: ~20,000+ FDA-approved applications",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│ drug_label_data - Structured Product Labeling                              │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "• Primary Key: set_id or product_ndc",
+        "• Fields: product_ndc, generic_name, brand_name, dosage_form, route",
+        "• JSON Storage: Complete SPL data including warnings, indications",
+        "• Source: Drug Label Bulk (13 parts)",
+        "• Records: ~200,000+ labeled drug products",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│ fda_ndc_data - Normalized FDA NDC                                          │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "• Primary Key: product_ndc (normalized format)",
+        "• Fields: Similar to ndc_data but with enhanced formatting",
+        "• JSON Storage: Normalized API responses",
+        "• Source: FDA NDC Bulk with normalization processing",
+        "• Records: ~150,000+ with standardized NDC formatting",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│ drug_images - Visual Drug Identification                                   │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "• Primary Key: image_id or ndc",
+        "• Fields: ndc, image_url, color, shape, imprint, size_mm, score, coating",
+        "• JSON Storage: Complete image metadata and physical characteristics",
+        "• Source: RxIMAGE bulk downloads from NLM",
+        "• Records: Variable (depends on manual download)",
+        "",
+        "┌─────────────────────────────────────────────────────────────────────────────┐",
+        "│ ndc_imprint_data - Physical Drug Characteristics                           │",
+        "└─────────────────────────────────────────────────────────────────────────────┘",
+        "• Primary Key: ndc",
+        "• Fields: setid, product_name, color_text, imprint, shape_text, size_text",
+        "• JSON Storage: Raw API responses from DailyMed and RxNorm",
+        "• Source: DailyMed Imprint API & RxNorm Properties API",
+        "• Records: Variable (based on existing NDC records in database)",
+        "",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "🔄 DATA PROCESSING DIFFERENCES",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "",
+        "📈 BULK vs API Processing:",
+        "• BULK: Faster, complete datasets, single download, offline processing",
+        "• API: Real-time, paginated, rate-limited, smaller incremental updates",
+        "",
+        "📊 Data Relationships:",
+        "• NDC codes link across all tables as common identifiers",
+        "• drug_images and ndc_imprint_data enhance ndc_data with visual/physical info",
+        "• drugsfda_data provides regulatory approval context",
+        "• drug_label_data provides comprehensive medical/legal information",
+        "",
+        "⚡ Performance Notes:",
+        "• Bulk downloads: Best for initial data loading",
+        "• API calls: Best for incremental updates and real-time queries",
+        "• Rate limiting: 100ms between API requests (respectful to NLM services)",
+        "",
+        "🗄️  Database Support:",
+        "• PostgreSQL: Full JSON/JSONB support, advanced indexing",
+        "• MySQL: JSON fields with basic querying capabilities",
+        "• Automatic schema detection and creation",
+        "",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "📚 COMMAND LINE USAGE",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "",
+        "./openfda_ndc_downloader --ndc          # NDC API processing",
+        "./openfda_ndc_downloader --ndc-bulk     # NDC bulk download", 
+        "./openfda_ndc_downloader --drugsfda     # DrugsFDA bulk download",
+        "./openfda_ndc_downloader --drug-label   # Drug Label bulk download",
+        "./openfda_ndc_downloader --fda-ndc      # FDA NDC normalized bulk",
+        "./openfda_ndc_downloader --rximage      # RxIMAGE processing (manual)",
+        "./openfda_ndc_downloader --dailymed     # DailyMed imprint API",
+        "./openfda_ndc_downloader --rxnorm       # RxNorm properties API",
+        "./openfda_ndc_downloader -i             # Interactive TUI mode",
+        "",
+        "═══════════════════════════════════════════════════════════════════════════════",
+        "Version: 2.0 | Build: " + std::string(__DATE__) + " " + std::string(__TIME__),
+        "Database Support: PostgreSQL, MySQL | TUI: ncurses | Network: libcurl",
+        "═══════════════════════════════════════════════════════════════════════════════"
+    };
+    
+    tui.showScrollableText(aboutContent, "📖 About OpenFDA Data Downloader");
 }

@@ -39,6 +39,7 @@ public:
     // Dialog operations
     bool showYesNoDialog(const std::string& question);
     std::string getStringInput(const std::string& prompt, const std::string& default_value = "");
+    void showScrollableText(const std::vector<std::string>& lines, const std::string& title);
     
     // Database connection management
     bool editDatabaseConfig(DatabaseConfig& config);
