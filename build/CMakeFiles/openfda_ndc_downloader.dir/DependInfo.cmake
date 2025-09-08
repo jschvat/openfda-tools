@@ -8,8 +8,10 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/home/jason/Development/claude/openfda-tools/src/api_downloader.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o.d"
   "/home/jason/Development/claude/openfda-tools/src/data_processor.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o.d"
   "/home/jason/Development/claude/openfda-tools/src/database.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.o.d"
+  "/home/jason/Development/claude/openfda-tools/src/database_connection.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o.d"
   "/home/jason/Development/claude/openfda-tools/src/database_insertions.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o.d"
   "/home/jason/Development/claude/openfda-tools/src/error_logger.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o.d"
   "/home/jason/Development/claude/openfda-tools/src/interactive.cpp" "CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o" "gcc" "CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o.d"

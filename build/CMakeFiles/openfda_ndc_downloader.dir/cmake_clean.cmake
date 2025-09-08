@@ -1,8 +1,12 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o"
+  "CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o.d"
   "CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o"
   "CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o.d"
   "CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.o"
   "CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.o.d"
+  "CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o"
+  "CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o.d"
   "CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o"
   "CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o.d"
   "CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o"

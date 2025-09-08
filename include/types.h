@@ -8,7 +8,10 @@ enum class DataSource {
     NDC_BULK,
     DRUGSFDA_BULK,
     DRUG_LABEL_BULK,
-    FDA_NDC_BULK
+    FDA_NDC_BULK,
+    RXIMAGE_BULK,
+    DAILYMED_NDC_IMPRINT,
+    RXNORM_NDC_PROPERTIES
 };
 
 enum class DatabaseType {
@@ -97,6 +100,21 @@ public:
                 "FDA NDC Data",
                 "https://download.open.fda.gov/drug/ndc/",
                 "drug-ndc-0001-of-0001.json.zip"
+            )},
+            {DataSource::RXIMAGE_BULK, DataSourceConfig(
+                "RxIMAGE Drug Images",
+                "https://datadiscovery.nlm.nih.gov/",
+                "rximage-collection.zip"
+            )},
+            {DataSource::DAILYMED_NDC_IMPRINT, DataSourceConfig(
+                "DailyMed NDC Imprint",
+                "https://dailymed.nlm.nih.gov/dailymed/services/v1/",
+                "ndc/{ndc}/imprintdata.json"
+            )},
+            {DataSource::RXNORM_NDC_PROPERTIES, DataSourceConfig(
+                "RxNorm NDC Properties",
+                "https://rxnav.nlm.nih.gov/REST/",
+                "ndc/{ndc}/allProperties.json"
             )}
         };
         

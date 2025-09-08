@@ -32,6 +32,7 @@ add_executable(openfda_ndc_downloader
     src/network.cpp
     src/tui.cpp
     src/interactive.cpp
+    src/api_downloader.cpp
 )
 
 # Link all required libraries

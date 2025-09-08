@@ -919,6 +919,178 @@ std::string DatabaseManager::getFDANDCDataTableSchema() {
     return "";
 }
 
+std::string DatabaseManager::getDrugImagesTableSchema() {
+    if (db_config.type == DatabaseType::MYSQL) {
+        return R"(
+            CREATE TABLE IF NOT EXISTS drug_images (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                ndc VARCHAR(255),
+                image_url TEXT,
+                color VARCHAR(100),
+                shape VARCHAR(100),
+                imprint TEXT,
+                size_mm DECIMAL(5,2),
+                score VARCHAR(50),
+                coating VARCHAR(50),
+                brand_name TEXT,
+                generic_name TEXT,
+                dosage TEXT,
+                spl_id VARCHAR(255),
+                rxcui VARCHAR(50),
+                labeler_name TEXT,
+                active_ingredients JSON,
+                inactive_ingredients JSON,
+                metadata JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_drug_images_ndc (ndc),
+                INDEX idx_drug_images_brand (brand_name(100)),
+                INDEX idx_drug_images_generic (generic_name(100)),
+                INDEX idx_drug_images_spl (spl_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        )";
+    } else if (db_config.type == DatabaseType::POSTGRESQL) {
+        return R"(
+            CREATE TABLE IF NOT EXISTS drug_images (
+                id SERIAL PRIMARY KEY,
+                ndc VARCHAR(255),
+                image_url TEXT,
+                color VARCHAR(100),
+                shape VARCHAR(100),
+                imprint TEXT,
+                size_mm DECIMAL(5,2),
+                score VARCHAR(50),
+                coating VARCHAR(50),
+                brand_name TEXT,
+                generic_name TEXT,
+                dosage TEXT,
+                spl_id VARCHAR(255),
+                rxcui VARCHAR(50),
+                labeler_name TEXT,
+                active_ingredients JSONB,
+                inactive_ingredients JSONB,
+                metadata JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_drug_images_ndc ON drug_images (ndc);
+            CREATE INDEX IF NOT EXISTS idx_drug_images_brand ON drug_images (brand_name);
+            CREATE INDEX IF NOT EXISTS idx_drug_images_generic ON drug_images (generic_name);
+            CREATE INDEX IF NOT EXISTS idx_drug_images_spl ON drug_images (spl_id);
+        )";
+    }
+    return "";
+}
+
+std::string DatabaseManager::getNDCImprintTableSchema() {
+    if (db_config.type == DatabaseType::MYSQL) {
+        return R"(
+            CREATE TABLE IF NOT EXISTS ndc_imprint_data (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                ndc VARCHAR(255),
+                setid VARCHAR(255),
+                spl_version VARCHAR(50),
+                product_name TEXT,
+                product_code VARCHAR(100),
+                color_text VARCHAR(255),
+                color_code VARCHAR(50),
+                imprint TEXT,
+                shape_text VARCHAR(255),
+                shape_code VARCHAR(50),
+                size_text VARCHAR(255),
+                score VARCHAR(100),
+                symbol VARCHAR(100),
+                coating VARCHAR(100),
+                labeler_name TEXT,
+                source_api VARCHAR(50) DEFAULT 'dailymed',
+                raw_data JSON,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY uk_ndc_imprint (ndc),
+                INDEX idx_ndc_imprint_setid (setid),
+                INDEX idx_ndc_imprint_product (product_name(100)),
+                INDEX idx_ndc_imprint_color (color_text),
+                INDEX idx_ndc_imprint_shape (shape_text),
+                INDEX idx_ndc_imprint_imprint (imprint(100))
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        )";
+    } else if (db_config.type == DatabaseType::POSTGRESQL) {
+        return R"(
+            CREATE TABLE IF NOT EXISTS ndc_imprint_data (
+                id SERIAL PRIMARY KEY,
+                ndc VARCHAR(255),
+                setid VARCHAR(255),
+                spl_version VARCHAR(50),
+                product_name TEXT,
+                product_code VARCHAR(100),
+                color_text VARCHAR(255),
+                color_code VARCHAR(50),
+                imprint TEXT,
+                shape_text VARCHAR(255),
+                shape_code VARCHAR(50),
+                size_text VARCHAR(255),
+                score VARCHAR(100),
+                symbol VARCHAR(100),
+                coating VARCHAR(100),
+                labeler_name TEXT,
+                source_api VARCHAR(50) DEFAULT 'dailymed',
+                raw_data JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT uk_ndc_imprint UNIQUE (ndc)
+            );
+            CREATE INDEX IF NOT EXISTS idx_ndc_imprint_setid ON ndc_imprint_data (setid);
+            CREATE INDEX IF NOT EXISTS idx_ndc_imprint_product ON ndc_imprint_data (product_name);
+            CREATE INDEX IF NOT EXISTS idx_ndc_imprint_color ON ndc_imprint_data (color_text);
+            CREATE INDEX IF NOT EXISTS idx_ndc_imprint_shape ON ndc_imprint_data (shape_text);
+            CREATE INDEX IF NOT EXISTS idx_ndc_imprint_imprint ON ndc_imprint_data (imprint);
+        )";
+    }
+    return "";
+}
+
+bool DatabaseManager::createDrugImagesTable() {
+    if (!is_interactive_mode) {
+        outputMessage("⏳ Creating Drug Images table...");
+    }
+    
+    std::string create_table_query = getDrugImagesTableSchema();
+    if (create_table_query.empty()) {
+        std::cerr << "❌ Error: No schema defined for current database type" << std::endl;
+        return false;
+    }
+    
+    if (!db_conn->executeQuery(create_table_query)) {
+        std::cerr << "❌ Error creating Drug Images table: " << db_conn->getLastError() << std::endl;
+        return false;
+    }
+    
+    if (!is_interactive_mode) {
+        outputMessage("✓ Drug Images table ready");
+    }
+    return true;
+}
+
+bool DatabaseManager::createNDCImprintTable() {
+    if (!is_interactive_mode) {
+        outputMessage("⏳ Creating NDC Imprint Data table...");
+    }
+    
+    std::string create_table_query = getNDCImprintTableSchema();
+    if (create_table_query.empty()) {
+        std::cerr << "❌ Error: No schema defined for current database type" << std::endl;
+        return false;
+    }
+    
+    if (!db_conn->executeQuery(create_table_query)) {
+        std::cerr << "❌ Error creating NDC Imprint Data table: " << db_conn->getLastError() << std::endl;
+        return false;
+    }
+    
+    if (!is_interactive_mode) {
+        outputMessage("✓ NDC Imprint Data table ready");
+    }
+    return true;
+}
+
 void DatabaseManager::outputMessage(const std::string& message) {
     if (is_interactive_mode && tui_output_func) {
         // Send to TUI footer

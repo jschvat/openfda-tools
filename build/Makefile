@@ -142,6 +142,30 @@ test_error_logger/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_error_logger.dir/build.make CMakeFiles/test_error_logger.dir/build
 .PHONY : test_error_logger/fast
 
+src/api_downloader.o: src/api_downloader.cpp.o
+.PHONY : src/api_downloader.o
+
+# target to build an object file
+src/api_downloader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o
+.PHONY : src/api_downloader.cpp.o
+
+src/api_downloader.i: src/api_downloader.cpp.i
+.PHONY : src/api_downloader.i
+
+# target to preprocess a source file
+src/api_downloader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.i
+.PHONY : src/api_downloader.cpp.i
+
+src/api_downloader.s: src/api_downloader.cpp.s
+.PHONY : src/api_downloader.s
+
+# target to generate assembly for a file
+src/api_downloader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.s
+.PHONY : src/api_downloader.cpp.s
+
 src/data_processor.o: src/data_processor.cpp.o
 .PHONY : src/data_processor.o
 
@@ -189,6 +213,30 @@ src/database.s: src/database.cpp.s
 src/database.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.s
 .PHONY : src/database.cpp.s
+
+src/database_connection.o: src/database_connection.cpp.o
+.PHONY : src/database_connection.o
+
+# target to build an object file
+src/database_connection.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o
+.PHONY : src/database_connection.cpp.o
+
+src/database_connection.i: src/database_connection.cpp.i
+.PHONY : src/database_connection.i
+
+# target to preprocess a source file
+src/database_connection.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.i
+.PHONY : src/database_connection.cpp.i
+
+src/database_connection.s: src/database_connection.cpp.s
+.PHONY : src/database_connection.s
+
+# target to generate assembly for a file
+src/database_connection.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/openfda_ndc_downloader.dir/build.make CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.s
+.PHONY : src/database_connection.cpp.s
 
 src/database_insertions.o: src/database_insertions.cpp.o
 .PHONY : src/database_insertions.o
@@ -371,12 +419,18 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... openfda_ndc_downloader"
 	@echo "... test_error_logger"
+	@echo "... src/api_downloader.o"
+	@echo "... src/api_downloader.i"
+	@echo "... src/api_downloader.s"
 	@echo "... src/data_processor.o"
 	@echo "... src/data_processor.i"
 	@echo "... src/data_processor.s"
 	@echo "... src/database.o"
 	@echo "... src/database.i"
 	@echo "... src/database.s"
+	@echo "... src/database_connection.o"
+	@echo "... src/database_connection.i"
+	@echo "... src/database_connection.s"
 	@echo "... src/database_insertions.o"
 	@echo "... src/database_insertions.i"
 	@echo "... src/database_insertions.s"

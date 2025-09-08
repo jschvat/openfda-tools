@@ -16,6 +16,9 @@ void printUsage(const char* program_name) {
     std::cout << "  -d, --drugsfda    Use DrugsFDA bulk download" << std::endl;
     std::cout << "  -l, --drug-label  Use Drug Label bulk download (13 parts)" << std::endl;
     std::cout << "  -f, --fda-ndc     Use FDA NDC bulk download (normalized format)" << std::endl;
+    std::cout << "  --rximage         Use RxIMAGE bulk download from NLM" << std::endl;
+    std::cout << "  --dailymed        Use DailyMed NDC imprint data API" << std::endl;
+    std::cout << "  --rxnorm          Use RxNorm NDC properties API" << std::endl;
     std::cout << "  -x, --clear       Clear database tables before processing" << std::endl;
     std::cout << "  --clear-ndc       Clear only NDC data table" << std::endl;
     std::cout << "  --clear-drugsfda  Clear only DrugsFDA data table" << std::endl;
@@ -41,6 +44,9 @@ void printUsage(const char* program_name) {
     std::cout << "  " << program_name << " --drugsfda        # DrugsFDA bulk download mode" << std::endl;
     std::cout << "  " << program_name << " --drug-label      # Drug Label bulk download mode" << std::endl;
     std::cout << "  " << program_name << " --fda-ndc         # FDA NDC bulk download mode (normalized)" << std::endl;
+    std::cout << "  " << program_name << " --rximage         # RxIMAGE bulk download from NLM" << std::endl;
+    std::cout << "  " << program_name << " --dailymed        # DailyMed NDC imprint API" << std::endl;
+    std::cout << "  " << program_name << " --rxnorm          # RxNorm NDC properties API" << std::endl;
     std::cout << "  " << program_name << " --clear --fda-ndc # Clear all tables, then FDA NDC bulk" << std::endl;
     std::cout << "  " << program_name << " --clear-ndc --ndc-bulk # Clear NDC table only, then bulk load" << std::endl;
     std::cout << "  " << program_name << " --clear-labels --drug-label # Clear labels only, then load" << std::endl;
@@ -71,6 +77,9 @@ int main(int argc, char* argv[]) {
         {"drugsfda",    no_argument,       0, 'd'},
         {"drug-label",  no_argument,       0, 'l'},
         {"fda-ndc",     no_argument,       0, 'f'},
+        {"rximage",     no_argument,       0, 1007},
+        {"dailymed",    no_argument,       0, 1008},
+        {"rxnorm",      no_argument,       0, 1009},
         {"clear",       no_argument,       0, 'x'},
         {"clear-ndc",   no_argument,       0, 1003},
         {"clear-drugsfda", no_argument,    0, 1004},
@@ -127,6 +136,15 @@ int main(int argc, char* argv[]) {
                 break;
             case 1006: // --clear-fda-ndc
                 clear_fda_ndc_table = true;
+                break;
+            case 1007: // --rximage
+                data_source = DataSource::RXIMAGE_BULK;
+                break;
+            case 1008: // --dailymed
+                data_source = DataSource::DAILYMED_NDC_IMPRINT;
+                break;
+            case 1009: // --rxnorm
+                data_source = DataSource::RXNORM_NDC_PROPERTIES;
                 break;
             case 'h':
                 printUsage(argv[0]);
@@ -200,6 +218,15 @@ int main(int argc, char* argv[]) {
     } else if (data_source == DataSource::FDA_NDC_BULK) {
         table_created = db_manager.createFDANDCDataTable();
         std::cout << "🔄 Processing FDA NDC data from bulk download..." << std::endl;
+    } else if (data_source == DataSource::RXIMAGE_BULK) {
+        table_created = db_manager.createDrugImagesTable();
+        std::cout << "🔄 Processing RxIMAGE drug image data from NLM..." << std::endl;
+    } else if (data_source == DataSource::DAILYMED_NDC_IMPRINT) {
+        table_created = db_manager.createNDCImprintTable();
+        std::cout << "🔄 Processing DailyMed NDC imprint data from API..." << std::endl;
+    } else if (data_source == DataSource::RXNORM_NDC_PROPERTIES) {
+        table_created = db_manager.createNDCImprintTable();
+        std::cout << "🔄 Processing RxNorm NDC properties from API..." << std::endl;
     } else {
         table_created = db_manager.createDrugsFDATable();
         std::cout << "🔄 Processing DrugsFDA data from bulk download..." << std::endl;

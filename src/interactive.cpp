@@ -86,6 +86,15 @@ bool InteractiveManager::handleDataDownload() {
         case DataSource::FDA_NDC_BULK:
             sourceStr = "FDA NDC Bulk Download (Normalized format)";
             break;
+        case DataSource::RXIMAGE_BULK:
+            sourceStr = "RxIMAGE Drug Images Download (Visual pill identification data)";
+            break;
+        case DataSource::DAILYMED_NDC_IMPRINT:
+            sourceStr = "DailyMed NDC Imprint API (Physical characteristics)";
+            break;
+        case DataSource::RXNORM_NDC_PROPERTIES:
+            sourceStr = "RxNorm NDC Properties API (Enhanced NDC data)";
+            break;
     }
     
     tui.showOperationSummary("Data Download Operation", 
@@ -119,6 +128,10 @@ bool InteractiveManager::handleDataDownload() {
         table_created = db_manager.createDrugLabelTable();
     } else if (dataSource == DataSource::FDA_NDC_BULK) {
         table_created = db_manager.createFDANDCDataTable();
+    } else if (dataSource == DataSource::RXIMAGE_BULK) {
+        table_created = db_manager.createDrugImagesTable();
+    } else if (dataSource == DataSource::DAILYMED_NDC_IMPRINT || dataSource == DataSource::RXNORM_NDC_PROPERTIES) {
+        table_created = db_manager.createNDCImprintTable();
     }
     
     if (!table_created) {
@@ -217,7 +230,10 @@ DataSource InteractiveManager::selectDataSource() {
         "NDC Bulk - Single file (faster)", 
         "DrugsFDA Bulk - Single file (approval data)",
         "Drug Label Bulk - 13 files (comprehensive labels)",
-        "FDA NDC Bulk - Single file (normalized NDC)"
+        "FDA NDC Bulk - Single file (normalized NDC)",
+        "RxIMAGE Drug Images - Pill images with visual data",
+        "DailyMed NDC Imprint - Physical characteristics API",
+        "RxNorm NDC Properties - Enhanced NDC data"
     };
     
     int choice = tui.showMenu(dataSourceOptions, "Select Data Source for Download", 70);
@@ -228,6 +244,9 @@ DataSource InteractiveManager::selectDataSource() {
         case 3: return DataSource::DRUGSFDA_BULK;
         case 4: return DataSource::DRUG_LABEL_BULK;
         case 5: return DataSource::FDA_NDC_BULK;
+        case 6: return DataSource::RXIMAGE_BULK;
+        case 7: return DataSource::DAILYMED_NDC_IMPRINT;
+        case 8: return DataSource::RXNORM_NDC_PROPERTIES;
         default: return static_cast<DataSource>(-1); // Cancelled
     }
 }
@@ -409,6 +428,18 @@ bool InteractiveManager::handleCreateDatabaseAndTables() {
     
     if (db_manager.createFDANDCDataTable()) {
         tui.showMessage("✓ FDA NDC table created", 800);
+    } else {
+        success = false;
+    }
+    
+    if (db_manager.createDrugImagesTable()) {
+        tui.showMessage("✓ Drug Images table created", 800);
+    } else {
+        success = false;
+    }
+    
+    if (db_manager.createNDCImprintTable()) {
+        tui.showMessage("✓ NDC Imprint Data table created", 800);
     } else {
         success = false;
     }

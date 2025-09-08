@@ -97,10 +97,24 @@ CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jason/Development/claude/openfda-tools/src/database.cpp -o CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.s
 
+CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
+CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o: ../src/database_connection.cpp
+CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o -c /home/jason/Development/claude/openfda-tools/src/database_connection.cpp
+
+CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jason/Development/claude/openfda-tools/src/database_connection.cpp > CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.i
+
+CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jason/Development/claude/openfda-tools/src/database_connection.cpp -o CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.s
+
 CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
 CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o: ../src/database_insertions.cpp
 CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o -c /home/jason/Development/claude/openfda-tools/src/database_insertions.cpp
 
 CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.s: cmake_force
 CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
 CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o: ../src/data_processor.cpp
 CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o -c /home/jason/Development/claude/openfda-tools/src/data_processor.cpp
 
 CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.s: cmake_force
 CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
 CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o: ../src/error_logger.cpp
 CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o -c /home/jason/Development/claude/openfda-tools/src/error_logger.cpp
 
 CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.i: cmake_force
@@ -142,7 +156,7 @@ CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.s: cmake_force
 CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
 CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o: ../src/network.cpp
 CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o -c /home/jason/Development/claude/openfda-tools/src/network.cpp
 
 CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.i: cmake_force
@@ -156,7 +170,7 @@ CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.s: cmake_force
 CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
 CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o: ../src/tui.cpp
 CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o -c /home/jason/Development/claude/openfda-tools/src/tui.cpp
 
 CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.i: cmake_force
@@ -170,7 +184,7 @@ CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.s: cmake_force
 CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
 CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o: ../src/interactive.cpp
 CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o -c /home/jason/Development/claude/openfda-tools/src/interactive.cpp
 
 CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.i: cmake_force
@@ -181,31 +195,49 @@ CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jason/Development/claude/openfda-tools/src/interactive.cpp -o CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.s
 
+CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/flags.make
+CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o: ../src/api_downloader.cpp
+CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o: CMakeFiles/openfda_ndc_downloader.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o -MF CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o.d -o CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o -c /home/jason/Development/claude/openfda-tools/src/api_downloader.cpp
+
+CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/jason/Development/claude/openfda-tools/src/api_downloader.cpp > CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.i
+
+CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/jason/Development/claude/openfda-tools/src/api_downloader.cpp -o CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.s
+
 # Object files for target openfda_ndc_downloader
 openfda_ndc_downloader_OBJECTS = \
 "CMakeFiles/openfda_ndc_downloader.dir/src/main.cpp.o" \
 "CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.o" \
+"CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o" \
 "CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o" \
 "CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o" \
 "CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o" \
 "CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o" \
 "CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o" \
-"CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o"
+"CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o" \
+"CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o"
 
 # External object files for target openfda_ndc_downloader
 openfda_ndc_downloader_EXTERNAL_OBJECTS =
 
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/main.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/database.cpp.o
+openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/database_connection.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/database_insertions.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/data_processor.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/error_logger.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/network.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/tui.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/interactive.cpp.o
+openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/src/api_downloader.cpp.o
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/build.make
 openfda_ndc_downloader: CMakeFiles/openfda_ndc_downloader.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable openfda_ndc_downloader"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/jason/Development/claude/openfda-tools/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Linking CXX executable openfda_ndc_downloader"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/openfda_ndc_downloader.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

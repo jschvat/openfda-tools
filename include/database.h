@@ -35,18 +35,24 @@ public:
     bool createDrugsFDATable();
     bool createDrugLabelTable();
     bool createFDANDCDataTable();
+    bool createDrugImagesTable();
+    bool createNDCImprintTable();
     
     // Database-specific schema creation helpers
     std::string getNDCTableSchema();
     std::string getDrugsFDATableSchema();
     std::string getDrugLabelTableSchema();
     std::string getFDANDCDataTableSchema();
+    std::string getDrugImagesTableSchema();
+    std::string getNDCImprintTableSchema();
     
     // Data insertion methods
     bool insertNDCRecord(const Json::Value& record);
     bool insertDrugsFDARecord(const Json::Value& record);
     bool insertDrugLabelRecord(const Json::Value& record);
     bool insertFDANDCRecord(const Json::Value& record);
+    bool insertDrugImageRecord(const Json::Value& record);
+    bool insertNDCImprintRecord(const Json::Value& record);
     
     // Database utilities
     bool tableExists(const std::string& tableName);

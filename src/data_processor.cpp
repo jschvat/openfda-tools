@@ -18,6 +18,11 @@ DataProcessor::DataProcessor(DatabaseManager& db_manager, const std::string& log
     
     // Connect error logger to database manager
     db_manager.setErrorLogger(&error_logger);
+    
+    // Initialize API downloader with a temporary NetworkManager
+    // We'll need to create a NetworkManager instance
+    static NetworkManager network_manager;  // Static to keep it alive
+    api_downloader = std::make_unique<APIDownloader>(network_manager, db_manager);
 }
 
 std::string DataProcessor::buildUrl(const DataSourceConfig& config, int part) {
@@ -142,6 +147,10 @@ bool DataProcessor::processBulkJsonFile(const std::string& json_filename) {
             success = db_manager.insertDrugLabelRecord(record);
         } else if (data_source == DataSource::FDA_NDC_BULK) {
             success = db_manager.insertFDANDCRecord(record);
+        } else if (data_source == DataSource::RXIMAGE_BULK) {
+            success = db_manager.insertDrugImageRecord(record);
+        } else if (data_source == DataSource::DAILYMED_NDC_IMPRINT || data_source == DataSource::RXNORM_NDC_PROPERTIES) {
+            success = db_manager.insertNDCImprintRecord(record);
         } else {
             success = db_manager.insertNDCRecord(record);
         }
@@ -311,6 +320,57 @@ bool DataProcessor::processBulkDownload(const DataSourceConfig& config) {
     }
 }
 
+bool DataProcessor::processAPIDownload(const DataSourceConfig& config) {
+    outputMessage("🚀 Starting " + config.name + " API data processing...");
+    
+    // Configure API downloader for TUI mode
+    if (api_downloader) {
+        api_downloader->setTUI(tui_ptr);
+        api_downloader->setInteractiveMode(interactive_mode);
+    }
+    
+    bool success = false;
+    
+    if (data_source == DataSource::DAILYMED_NDC_IMPRINT || data_source == DataSource::RXNORM_NDC_PROPERTIES) {
+        // Get NDC list from database
+        auto ndc_list = api_downloader->extractNDCListFromDatabase(config.file_count > 0 ? config.file_count : 1000);
+        
+        if (ndc_list.empty()) {
+            outputMessage("⚠️  No NDCs found in database for API processing");
+            return false;
+        }
+        
+        outputMessage("📋 Found " + std::to_string(ndc_list.size()) + " NDCs to process");
+        
+        if (data_source == DataSource::DAILYMED_NDC_IMPRINT) {
+            success = api_downloader->downloadDailyMedImprintData(ndc_list);
+        } else if (data_source == DataSource::RXNORM_NDC_PROPERTIES) {
+            success = api_downloader->downloadRxNormNDCProperties(ndc_list);
+        }
+    } else if (data_source == DataSource::RXIMAGE_BULK) {
+        // RxIMAGE bulk download would be implemented here
+        // For now, just output a placeholder message
+        outputMessage("⚠️  RxIMAGE bulk download not yet implemented - please download manually from NLM Data Discovery");
+        outputMessage("📁 URL: https://datadiscovery.nlm.nih.gov/");
+        success = false;
+    }
+    
+    if (success) {
+        outputMessage("🎉 " + config.name + " API processing completed successfully!");
+        
+        // Print error summary at the end of processing
+        if (error_logger.getErrorCount() > 0 || error_logger.getDuplicateCount() > 0) {
+            std::cout << "\n" << std::endl;
+            error_logger.printSummary();
+        }
+        
+        return true;
+    } else {
+        outputMessage("❌ " + config.name + " API processing failed");
+        return false;
+    }
+}
+
 std::string DataProcessor::downloadNDCData(int limit, int skip) {
     NetworkManager network;
     
@@ -367,6 +427,16 @@ void DataProcessor::processAllData() {
         
         const DataSourceConfig& config = DataSourceRegistry::getConfig(data_source);
         processBulkDownload(config);
+        return;
+    }
+    
+    // Handle API downloads with unified logic
+    if (data_source == DataSource::RXIMAGE_BULK ||
+        data_source == DataSource::DAILYMED_NDC_IMPRINT ||
+        data_source == DataSource::RXNORM_NDC_PROPERTIES) {
+        
+        const DataSourceConfig& config = DataSourceRegistry::getConfig(data_source);
+        processAPIDownload(config);
         return;
     }
     
@@ -454,6 +524,13 @@ std::string DataProcessor::extractPrimaryKey(const Json::Value& record) {
         case DataSource::FDA_NDC_BULK:
             return db_manager.formatNDCToStandard(record.get("product_ndc", "unknown").asString());
             
+        case DataSource::RXIMAGE_BULK:
+            return record.get("ndc", record.get("image_id", "unknown")).asString();
+            
+        case DataSource::DAILYMED_NDC_IMPRINT:
+        case DataSource::RXNORM_NDC_PROPERTIES:
+            return record.get("ndc", "unknown").asString();
+            
         default:
             return "unknown";
     }
@@ -473,6 +550,13 @@ std::string DataProcessor::getTableNameForDataSource(DataSource source) {
             
         case DataSource::FDA_NDC_BULK:
             return "fda_ndc_data";
+            
+        case DataSource::RXIMAGE_BULK:
+            return "drug_images";
+            
+        case DataSource::DAILYMED_NDC_IMPRINT:
+        case DataSource::RXNORM_NDC_PROPERTIES:
+            return "ndc_imprint_data";
             
         default:
             return "unknown_table";

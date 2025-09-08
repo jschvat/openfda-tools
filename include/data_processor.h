@@ -3,8 +3,10 @@
 #include "types.h"
 #include "database.h"
 #include "error_logger.h"
+#include "api_downloader.h"
 #include <json/json.h>
 #include <string>
+#include <memory>
 
 class AdvancedTUI;
 
@@ -17,6 +19,7 @@ private:
     std::string current_source_file;
     AdvancedTUI* tui_ptr;
     bool interactive_mode;
+    std::unique_ptr<APIDownloader> api_downloader;
 
 public:
     DataProcessor(DatabaseManager& db_manager, const std::string& log_dir = "./logs/");
@@ -40,6 +43,9 @@ public:
     
     // Bulk processing workflow
     bool processBulkDownload(const DataSourceConfig& config);
+    
+    // API processing workflow
+    bool processAPIDownload(const DataSourceConfig& config);
     
     // Main processing entry point
     void processAllData();

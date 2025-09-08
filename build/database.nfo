@@ -1,6 +1,0 @@
-host: miniserver.home
-port: 3306
-user: root
-password: 1Daniel0716!
-database: openfda
-schema: ndc_files

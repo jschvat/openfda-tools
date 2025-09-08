@@ -419,3 +419,135 @@ bool DatabaseManager::insertFDANDCRecord(const Json::Value& record) {
     
     return true;
 }
+
+bool DatabaseManager::insertDrugImageRecord(const Json::Value& record) {
+    std::stringstream query;
+    query << "INSERT INTO drug_images (";
+    query << "ndc, image_url, color, shape, imprint, size_mm, score, coating, ";
+    query << "brand_name, generic_name, dosage, spl_id, rxcui, labeler_name, ";
+    query << "active_ingredients, inactive_ingredients, metadata";
+    query << ") VALUES (";
+    
+    // Basic fields
+    query << escapeString(record.get("ndc", "").asString()) << ", ";
+    query << escapeString(record.get("image_url", "").asString()) << ", ";
+    query << escapeString(record.get("color", "").asString()) << ", ";
+    query << escapeString(record.get("shape", "").asString()) << ", ";
+    query << escapeString(record.get("imprint", "").asString()) << ", ";
+    
+    // Size (numeric)
+    if (record.isMember("size_mm") && record["size_mm"].isNumeric()) {
+        query << record["size_mm"].asFloat() << ", ";
+    } else {
+        query << "NULL, ";
+    }
+    
+    query << escapeString(record.get("score", "").asString()) << ", ";
+    query << escapeString(record.get("coating", "").asString()) << ", ";
+    query << escapeString(record.get("brand_name", "").asString()) << ", ";
+    query << escapeString(record.get("generic_name", "").asString()) << ", ";
+    query << escapeString(record.get("dosage", "").asString()) << ", ";
+    query << escapeString(record.get("spl_id", "").asString()) << ", ";
+    query << escapeString(record.get("rxcui", "").asString()) << ", ";
+    query << escapeString(record.get("labeler_name", "").asString()) << ", ";
+    
+    // JSON fields
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    
+    // Active ingredients JSON
+    if (record.isMember("active_ingredients")) {
+        std::ostringstream stream;
+        writer->write(record["active_ingredients"], &stream);
+        query << escapeString(stream.str()) << ", ";
+    } else {
+        query << "NULL, ";
+    }
+    
+    // Inactive ingredients JSON
+    if (record.isMember("inactive_ingredients")) {
+        std::ostringstream stream;
+        writer->write(record["inactive_ingredients"], &stream);
+        query << escapeString(stream.str()) << ", ";
+    } else {
+        query << "NULL, ";
+    }
+    
+    // Metadata JSON
+    if (record.isMember("metadata")) {
+        std::ostringstream stream;
+        writer->write(record["metadata"], &stream);
+        query << escapeString(stream.str());
+    } else {
+        query << "NULL";
+    }
+    
+    query << ")";
+    
+    if (!db_conn->executeQuery(query.str())) {
+        std::string error_msg = db_conn->getLastError();
+        if (isDuplicateKeyError(error_msg)) {
+            std::cout << "ℹ️  Drug image record already exists (ndc: " 
+                     << record.get("ndc", "").asString() << ")" << std::endl;
+            return true; // Consider duplicate as success to continue processing
+        } else {
+            std::cerr << "Error inserting drug image record: " << error_msg << std::endl;
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+bool DatabaseManager::insertNDCImprintRecord(const Json::Value& record) {
+    std::stringstream query;
+    query << "INSERT INTO ndc_imprint_data (";
+    query << "ndc, setid, spl_version, product_name, product_code, color_text, color_code, ";
+    query << "imprint, shape_text, shape_code, size_text, score, symbol, coating, ";
+    query << "labeler_name, source_api, raw_data";
+    query << ") VALUES (";
+    
+    // Basic fields
+    query << escapeString(record.get("ndc", "").asString()) << ", ";
+    query << escapeString(record.get("setid", "").asString()) << ", ";
+    query << escapeString(record.get("spl_version", "").asString()) << ", ";
+    query << escapeString(record.get("product_name", "").asString()) << ", ";
+    query << escapeString(record.get("product_code", "").asString()) << ", ";
+    query << escapeString(record.get("color_text", "").asString()) << ", ";
+    query << escapeString(record.get("color_code", "").asString()) << ", ";
+    query << escapeString(record.get("imprint", "").asString()) << ", ";
+    query << escapeString(record.get("shape_text", "").asString()) << ", ";
+    query << escapeString(record.get("shape_code", "").asString()) << ", ";
+    query << escapeString(record.get("size_text", "").asString()) << ", ";
+    query << escapeString(record.get("score", "").asString()) << ", ";
+    query << escapeString(record.get("symbol", "").asString()) << ", ";
+    query << escapeString(record.get("coating", "").asString()) << ", ";
+    query << escapeString(record.get("labeler_name", "").asString()) << ", ";
+    query << escapeString(record.get("source_api", "dailymed").asString()) << ", ";
+    
+    // Raw data JSON
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    
+    std::ostringstream stream;
+    writer->write(record, &stream);
+    query << escapeString(stream.str());
+    
+    query << ")";
+    
+    if (!db_conn->executeQuery(query.str())) {
+        std::string error_msg = db_conn->getLastError();
+        if (isDuplicateKeyError(error_msg)) {
+            std::cout << "ℹ️  NDC imprint record already exists (ndc: " 
+                     << record.get("ndc", "").asString() << ")" << std::endl;
+            return true; // Consider duplicate as success to continue processing
+        } else {
+            std::cerr << "Error inserting NDC imprint record: " << error_msg << std::endl;
+            return false;
+        }
+    }
+    
+    return true;
+}
